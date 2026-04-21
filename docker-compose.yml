@@ -1,0 +1,16 @@
+services:
+    postgres:
+        image: postgres:16
+        container_name: modden-postgres
+        restart: always
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: modden_db
+        ports:
+            - '5433:5432'
+        volumes:
+            - modden_postgres_data:/var/lib/postgresql/data
+
+volumes:
+    modden_postgres_data:
