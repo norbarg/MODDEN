@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,21 @@ export class UsersService {
     });
   }
 
+  async findPublicById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async create(data: {
     email: string;
     username: string;
@@ -33,6 +49,33 @@ export class UsersService {
         email: data.email,
         username: data.username,
         passwordHash: data.passwordHash,
+      },
+    });
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    if (dto.username) {
+      const existingUser = await this.findByUsername(dto.username);
+
+      if (existingUser && existingUser.id !== userId) {
+        throw new BadRequestException('Username is already in use');
+      }
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.username !== undefined ? { username: dto.username } : {}),
+        ...(dto.avatarUrl !== undefined ? { avatarUrl: dto.avatarUrl } : {}),
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -99,5 +142,23 @@ export class UsersService {
       where: { id: userId },
       data: { isEmailVerified: true },
     });
+  }
+
+  async findByEmailOrUsername(identifier: string) {
+    return this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: identifier }, { username: identifier }],
+      },
+    });
+  }
+
+  async deleteMyAccount(userId: string) {
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return {
+      message: 'Account deleted successfully',
+    };
   }
 }
