@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsInt,
-  IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
@@ -11,46 +10,48 @@ import {
 
 export class CreateProjectDto {
   @ApiProperty({
+    example: '2e7a2d1f-3b5d-4d67-9c4f-123456789abc',
+    description: 'Source template ID',
+  })
+  @IsUUID()
+  templateId!: string;
+
+  @ApiPropertyOptional({
     example: 'My first poster',
     description: 'Project title',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  title!: string;
+  title?: string;
 
   @ApiPropertyOptional({
-    example: '',
-    description: 'Source template ID',
+    example: 1080,
+    description: 'Canvas width override',
   })
   @IsOptional()
-  @IsUUID()
-  templateId?: string;
-
-  @ApiProperty({
-    example: 1080,
-    description: 'Canvas width',
-  })
   @IsInt()
   @Min(1)
-  canvasWidth!: number;
+  canvasWidth?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 1080,
-    description: 'Canvas height',
+    description: 'Canvas height override',
   })
+  @IsOptional()
   @IsInt()
   @Min(1)
-  canvasHeight!: number;
+  canvasHeight?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: {
       background: '#ffffff',
       elements: [],
     },
-    description: 'Serialized editor scene JSON',
+    description: 'Optional overridden scene JSON',
   })
+  @IsOptional()
   @IsObject()
-  sceneJson!: Record<string, unknown>;
+  sceneJson?: Record<string, unknown>;
 
   @ApiPropertyOptional({
     example: 'https://example.com/project-thumb.png',
