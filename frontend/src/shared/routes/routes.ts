@@ -1,3 +1,4 @@
+//src/shared/routes/routes.ts
 export const routes = {
     landing: '/',
     login: '/login',

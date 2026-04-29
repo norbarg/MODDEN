@@ -1,6 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { routes } from '../../shared/routes/routes';
+//src/app/router/AppRouter.tsx
+import { Routes, Route } from 'react-router-dom';
+import VerifyEmailPage from '../../pages/varify-email-page/VerifyEmailPage';
 
 export function AppRouter() {
-    return <Routes></Routes>;
+    return (
+        <Routes>
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+        </Routes>
+    );
 }

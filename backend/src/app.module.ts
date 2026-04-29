@@ -10,6 +10,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
 import { TemplatesModule } from './templates/templates.module';
 import { StockImagesModule } from './stock-images/stock-images.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StockImagesModule } from './stock-images/stock-images.module';
     TemplatesModule,
     AssetsModule,
     StockImagesModule,
+    MailModule,
   ],
   controllers: [AppController],
 })
