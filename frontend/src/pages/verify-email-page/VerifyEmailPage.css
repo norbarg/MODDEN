@@ -1,0 +1,311 @@
+.verify-page {
+  min-height: 100vh;
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #232240;
+}
+
+.verify-card {
+  width: min(100%, 680px);
+  min-height: 360px;
+
+  display: flex;
+  flex-direction: column;
+
+  border-radius: 32px;
+  overflow: hidden;
+  background: #ffffff;
+
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.35);
+  animation: verifyCardIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.verify-card__top {
+  position: relative;
+
+  min-height: 170px;
+  padding: 30px 40px 46px;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+
+  background: #ffffff;
+}
+
+.verify-card__logo {
+  width: 70px;
+  height: auto;
+  display: block;
+}
+
+.verify-card__status {
+  position: absolute;
+  left: 50%;
+  bottom: 13px;
+
+  transform: translate(-50%, 50%);
+  z-index: 3;
+}
+
+.verify-card__status-image {
+  width: 95px;
+  height: 95px;
+  display: block;
+  object-fit: contain;
+
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.22));
+}
+
+.verify-card__loader,
+.verify-card__icon {
+  width: 88px;
+  height: 88px;
+}
+
+.verify-card__loader {
+  border: 7px solid #f1f1f1;
+  border-top-color: #ff3d0b;
+  border-radius: 50%;
+  animation: verifySpin 0.8s linear infinite;
+}
+
+.verify-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 50px;
+  font-weight: 700;
+
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+}
+
+.verify-card__icon--error {
+  background: #d12600;
+}
+
+.verify-card__body {
+  position: relative;
+
+  margin: 0;
+  padding: 64px 42px 34px;
+  min-height: 190px;
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 28px;
+
+  background: #111111;
+  color: #ffffff;
+
+  border-radius: 32px;
+  z-index: 1;
+}
+
+.verify-card__text {
+  max-width: 520px;
+}
+
+.verify-card__body h1 {
+  margin: 0 0 10px;
+
+  color: #ffffff;
+  font-size: 36px;
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.verify-card__body p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.verify-card__hint {
+  max-width: 520px;
+  margin-top: 12px !important;
+
+  color: rgba(255, 255, 255, 0.62) !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.verify-card__button {
+  min-width: 150px;
+  height: 44px;
+  padding: 0 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 24px;
+  background: #ff3d0b;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease;
+}
+
+.verify-card__button:hover {
+  transform: translateY(-2px);
+  background: #e93609;
+}
+
+@keyframes verifySpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes verifyCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .verify-card {
+    width: min(100%, 540px);
+    min-height: 330px;
+    border-radius: 26px;
+  }
+
+  .verify-card__top {
+    min-height: 145px;
+    padding: 26px 30px 42px;
+  }
+
+  .verify-card__logo {
+    width: 70px;
+  }
+
+  .verify-card__status-image,
+  .verify-card__icon,
+  .verify-card__loader {
+    width: 76px;
+    height: 76px;
+  }
+
+  .verify-card__loader {
+    border-width: 6px;
+  }
+
+  .verify-card__icon {
+    font-size: 42px;
+  }
+
+  .verify-card__body {
+    margin: 0;
+    padding: 58px 30px 30px;
+    min-height: 185px;
+
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 22px;
+
+    border-radius: 26px;
+  }
+
+  .verify-card__body h1 {
+    font-size: 31px;
+  }
+
+  .verify-card__body p {
+    font-size: 15px;
+  }
+
+  .verify-card__hint {
+    font-size: 13px !important;
+  }
+
+  .verify-card__button {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 480px) {
+  .verify-page {
+    padding: 16px;
+  }
+
+  .verify-card {
+    min-height: 315px;
+    border-radius: 22px;
+  }
+
+  .verify-card__top {
+    min-height: 130px;
+    padding: 22px 22px 38px;
+  }
+
+  .verify-card__logo {
+    width: 66px;
+  }
+
+  .verify-card__status-image,
+  .verify-card__icon,
+  .verify-card__loader {
+    width: 68px;
+    height: 68px;
+  }
+
+  .verify-card__loader {
+    border-width: 5px;
+  }
+
+  .verify-card__icon {
+    font-size: 38px;
+  }
+
+  .verify-card__body {
+    margin: 0;
+    padding: 52px 22px 24px;
+    min-height: 185px;
+
+    border-radius: 22px;
+    gap: 20px;
+  }
+
+  .verify-card__body h1 {
+    font-size: 27px;
+  }
+
+  .verify-card__body p {
+    font-size: 14px;
+  }
+
+  .verify-card__hint {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+  }
+
+  .verify-card__button {
+    width: 100%;
+    justify-self: stretch;
+  }
+}

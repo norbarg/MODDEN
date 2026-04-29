@@ -1,3 +1,4 @@
+//src/auth/auth.service.ts
 import {
   BadRequestException,
   Injectable,
@@ -10,12 +11,14 @@ import type { StringValue } from 'ms';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -57,11 +60,10 @@ export class AuthService {
     });
 
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    await this.mailService.sendVerificationEmail(user.email, verificationLink);
 
     return {
       message: 'User registered successfully. Please verify your email.',
-      verificationToken,
-      verificationLink,
       user: {
         id: user.id,
         email: user.email,
