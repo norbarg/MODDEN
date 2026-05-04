@@ -12,14 +12,92 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { MailService } from '../mail/mail.service';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
+  private readonly googleClient = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+  );
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
+
+  private async generateUniqueGoogleUsername(baseName: string) {
+    const normalizedBase = baseName
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 20);
+
+    const baseUsername = normalizedBase || 'google_user';
+
+    let username = baseUsername;
+    let counter = 1;
+
+    while (await this.usersService.findByUsername(username)) {
+      username = `${baseUsername}_${counter}`;
+      counter += 1;
+    }
+
+    return username;
+  }
+
+  private async createAuthResponse(user: {
+    id: string;
+    email: string;
+    username: string;
+    avatarUrl?: string | null;
+    isEmailVerified: boolean;
+  }) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
+
+    const accessExpiresIn =
+      (process.env.JWT_ACCESS_EXPIRES_IN as StringValue) || '15m';
+
+    const refreshExpiresIn =
+      (process.env.JWT_REFRESH_EXPIRES_IN as StringValue) || '30d';
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: accessExpiresIn,
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: refreshExpiresIn,
+    });
+
+    const refreshExpiresAt = new Date();
+    refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30);
+
+    await this.usersService.createRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      expiresAt: refreshExpiresAt,
+    });
+
+    return {
+      message: 'Login successful',
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatarUrl: user.avatarUrl ?? null,
+        isEmailVerified: user.isEmailVerified,
+      },
+    };
+  }
 
   async register(dto: RegisterDto) {
     const existingByEmail = await this.usersService.findByEmail(dto.email);
@@ -80,6 +158,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        'This account uses Google login. Please sign in with Google.',
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(
       dto.password,
       user.passwordHash,
@@ -93,47 +177,51 @@ export class AuthService {
       throw new UnauthorizedException('Please verify your email first');
     }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-    };
+    return this.createAuthResponse(user);
+  }
 
-    const accessExpiresIn =
-      (process.env.JWT_ACCESS_EXPIRES_IN as StringValue) || '15m';
-    const refreshExpiresIn =
-      (process.env.JWT_REFRESH_EXPIRES_IN as StringValue) || '30d';
-
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: accessExpiresIn,
+  async googleLogin(credential: string) {
+    const ticket = await this.googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: refreshExpiresIn,
-    });
+    const payload = ticket.getPayload();
 
-    const refreshExpiresAt = new Date();
-    refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30);
+    if (!payload?.email || !payload.sub) {
+      throw new UnauthorizedException('Invalid Google account');
+    }
 
-    await this.usersService.createRefreshToken({
-      userId: user.id,
-      token: refreshToken,
-      expiresAt: refreshExpiresAt,
-    });
+    const email = payload.email.toLowerCase();
+    const googleId = payload.sub;
+    const avatarUrl = payload.picture ?? null;
 
-    return {
-      message: 'Login successful',
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        isEmailVerified: user.isEmailVerified,
-      },
-    };
+    let user = await this.usersService.findByGoogleId(googleId);
+
+    if (!user) {
+      const existingUser = await this.usersService.findByEmail(email);
+
+      if (existingUser) {
+        user = await this.usersService.linkGoogleToExistingUser({
+          userId: existingUser.id,
+          googleId,
+          avatarUrl,
+        });
+      } else {
+        const username = await this.generateUniqueGoogleUsername(
+          payload.name || email.split('@')[0],
+        );
+
+        user = await this.usersService.createGoogleUser({
+          email,
+          username,
+          googleId,
+          avatarUrl,
+        });
+      }
+    }
+
+    return this.createAuthResponse(user);
   }
 
   async refresh(refreshToken: string) {

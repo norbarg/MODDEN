@@ -18,15 +18,22 @@ enum TemplateCategory {
   CUSTOM_SIZE
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  username        String   @unique
-  passwordHash    String
-  isEmailVerified Boolean  @default(false)
+  id              String       @id @default(uuid())
+  email           String       @unique
+  username        String       @unique
+  passwordHash    String?
+  googleId        String?      @unique
+  authProvider    AuthProvider @default(LOCAL)
+  isEmailVerified Boolean      @default(false)
   avatarUrl       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   projects           Project[]
   templates          Template[]

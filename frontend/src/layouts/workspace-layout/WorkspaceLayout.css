@@ -1,0 +1,26 @@
+.workspace-layout {
+    min-height: 100vh;
+    background: #f8f8f7;
+    color: #070707;
+}
+
+.workspace-layout__content {
+    width: 100%;
+    min-width: 0;
+}
+
+.workspace-layout__loader {
+    min-height: 100vh;
+    padding-left: 90px;
+    display: grid;
+    place-items: center;
+    color: #29254c;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+@media (max-width: 760px) {
+    .workspace-layout__loader {
+        padding-left: 72px;
+    }
+}

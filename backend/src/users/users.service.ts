@@ -161,4 +161,42 @@ export class UsersService {
       message: 'Account deleted successfully',
     };
   }
+  async findByGoogleId(googleId: string) {
+    return this.prisma.user.findUnique({
+      where: { googleId },
+    });
+  }
+
+  async createGoogleUser(data: {
+    email: string;
+    username: string;
+    googleId: string;
+    avatarUrl?: string | null;
+  }) {
+    return this.prisma.user.create({
+      data: {
+        email: data.email,
+        username: data.username,
+        googleId: data.googleId,
+        avatarUrl: data.avatarUrl,
+        authProvider: 'GOOGLE',
+        isEmailVerified: true,
+      },
+    });
+  }
+
+  async linkGoogleToExistingUser(data: {
+    userId: string;
+    googleId: string;
+    avatarUrl?: string | null;
+  }) {
+    return this.prisma.user.update({
+      where: { id: data.userId },
+      data: {
+        googleId: data.googleId,
+        avatarUrl: data.avatarUrl,
+        isEmailVerified: true,
+      },
+    });
+  }
 }
