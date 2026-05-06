@@ -1,0 +1,27 @@
+.editor-subheader {
+    height: 42px;
+    padding: 0 38px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #d6dee2;
+    box-sizing: border-box;
+}
+
+.editor-subheader strong {
+    color: #262444;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.editor-subheader span {
+    color: #708d96;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .editor-subheader {
+        padding: 0 16px;
+    }
+}

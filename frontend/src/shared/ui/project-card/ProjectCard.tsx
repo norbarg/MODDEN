@@ -9,6 +9,7 @@ import './ProjectCard.css';
 
 type ProjectCardProps = {
     project: WorkspaceProject;
+    onClick?: (project: WorkspaceProject) => void;
     onEdit?: (project: WorkspaceProject) => void;
     onDelete?: (project: WorkspaceProject) => void;
 };
@@ -69,7 +70,12 @@ function ProjectPreview({ project }: { project: WorkspaceProject }) {
     );
 }
 
-export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+export function ProjectCard({
+    project,
+    onClick,
+    onEdit,
+    onDelete,
+}: ProjectCardProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -102,18 +108,37 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
         };
     }, [isMenuOpen]);
 
-    const handleEdit = () => {
+    const handleCardClick = () => {
+        onClick?.(project);
+    };
+
+    const handleCardKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick?.(project);
+        }
+    };
+
+    const handleEdit = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
         setIsMenuOpen(false);
         onEdit?.(project);
     };
 
-    const handleDelete = () => {
+    const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
         setIsMenuOpen(false);
         onDelete?.(project);
     };
 
     return (
-        <article className="project-card">
+        <article
+            className="project-card"
+            role="button"
+            tabIndex={0}
+            onClick={handleCardClick}
+            onKeyDown={handleCardKeyDown}
+        >
             <div className="project-card__preview">
                 <ProjectPreview project={project} />
             </div>
@@ -128,7 +153,11 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                     </p>
                 </div>
 
-                <div className="project-card__actions" ref={menuRef}>
+                <div
+                    className="project-card__actions"
+                    ref={menuRef}
+                    onClick={(event) => event.stopPropagation()}
+                >
                     <button
                         className="project-card__menu"
                         type="button"

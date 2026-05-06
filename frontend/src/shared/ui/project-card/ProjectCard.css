@@ -203,7 +203,12 @@
     letter-spacing: -0.05em;
     text-transform: uppercase;
 }
-
+.project-card {
+    cursor: pointer;
+}
+.project-card:hover {
+    transform: translateY(-3px);
+}
 @media (max-width: 760px) {
     .project-card {
         width: 100%;

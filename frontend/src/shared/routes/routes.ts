@@ -9,4 +9,9 @@ export const ROUTES = {
     PROJECTS: '/app/projects',
     TEMPLATES: '/app/templates',
     ACCOUNT: '/app/account',
+    EDITOR: '/app/editor/:projectId',
 } as const;
+
+export function getEditorRoute(project: { id: string }) {
+    return `/app/editor/${project.id}`;
+}

@@ -7,6 +7,9 @@ import {
     CreateProjectModal,
     type CreateProjectFormValues,
 } from '../../shared/ui/create-project-modal';
+import { useNavigate } from 'react-router-dom';
+import { getEditorRoute } from '../../shared/routes/routes';
+
 import searchIcon from '../../assets/home-page/search.svg';
 import arrowDownIcon from '../../assets/home-page/arrow-down.svg';
 import './ProjectsPage.css';
@@ -35,6 +38,7 @@ function compareByTitle(first: WorkspaceProject, second: WorkspaceProject) {
 }
 
 export function ProjectsPage() {
+    const navigate = useNavigate();
     const [projects, setProjects] = useState<WorkspaceProject[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortMode, setSortMode] = useState<SortMode>('lastModified');
@@ -243,6 +247,9 @@ export function ProjectsPage() {
                         <ProjectCard
                             project={project}
                             key={project.id}
+                            onClick={(selectedProject) =>
+                                navigate(getEditorRoute(selectedProject))
+                            }
                             onEdit={handleOpenEditProjectModal}
                             onDelete={handleDeleteProject}
                         />

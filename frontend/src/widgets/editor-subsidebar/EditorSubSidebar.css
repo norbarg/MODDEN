@@ -1,0 +1,8 @@
+.editor-subsidebar {
+    width: 260px;
+    min-height: calc(100vh - 54px);
+    padding: 22px;
+    background: #ffffff;
+    border-right: 1px solid #d6dee2;
+    box-sizing: border-box;
+}

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { ROUTES } from '../../shared/routes/routes';
+import { ROUTES, getEditorRoute } from '../../shared/routes/routes';
 
 import { projectsApi } from '../../shared/api/projectsApi';
 import { templatesApi } from '../../shared/api/templatesApi';
@@ -303,10 +303,7 @@ export function HomePage() {
                 canvasHeight: values.canvasHeight,
             });
 
-            setProjects((currentProjects) => [
-                createdProject,
-                ...currentProjects,
-            ]);
+            navigate(getEditorRoute(createdProject));
             setIsCreateModalOpen(false);
         } finally {
             setIsCreating(false);
@@ -442,6 +439,9 @@ export function HomePage() {
                             <ProjectCard
                                 project={project}
                                 key={project.id}
+                                onClick={(selectedProject) =>
+                                    navigate(getEditorRoute(selectedProject))
+                                }
                                 onEdit={handleOpenEditProjectModal}
                                 onDelete={handleDeleteProject}
                             />

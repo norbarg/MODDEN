@@ -1,3 +1,4 @@
+//src/layouts/workspace-layout/WorkspaceLayout.tsx
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { WorkspaceSidebar } from '../../widgets/workspace-sidebar/WorkspaceSidebar';

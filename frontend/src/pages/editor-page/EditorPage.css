@@ -1,0 +1,9 @@
+.editor-page-loader {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #eef1f2;
+    color: #262444;
+    font-size: 18px;
+    font-weight: 700;
+}

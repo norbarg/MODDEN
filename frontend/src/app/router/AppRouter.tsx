@@ -7,16 +7,23 @@ import { RegisterPage } from '../../pages/register-page/RegisterPage';
 import { VerifyEmailPage } from '../../pages/verify-email-page/VerifyEmailPage';
 import { HomePage } from '../../pages/home-page/HomePage';
 import { TemplatesPage } from '../../pages/templates-page/TemplatesPage';
-import { WorkspaceLayout } from '../../layouts/workspace-layout/WorkspaceLayout';
 import { ProjectsPage } from '../../pages/projects-page/ProjectsPage';
+import { EditorPage } from '../../pages/editor-page/EditorPage';
+import { WorkspaceLayout } from '../../layouts/workspace-layout/WorkspaceLayout';
+import { PublicRouteRedirect } from './PublicRouteRedirect';
 
 export function AppRouter() {
     return (
         <Routes>
-            <Route path={ROUTES.LANDING} element={<LandingPage />} />
-            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-            <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-            <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+            <Route element={<PublicRouteRedirect />}>
+                <Route path={ROUTES.LANDING} element={<LandingPage />} />
+                <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+                <Route
+                    path={ROUTES.VERIFY_EMAIL}
+                    element={<VerifyEmailPage />}
+                />
+            </Route>
 
             <Route element={<WorkspaceLayout />}>
                 <Route path={ROUTES.HOME} element={<HomePage />} />
@@ -25,10 +32,9 @@ export function AppRouter() {
                 <Route path={ROUTES.ACCOUNT} element={<HomePage />} />
             </Route>
 
-            <Route
-                path="*"
-                element={<Navigate to={ROUTES.LANDING} replace />}
-            />
+            <Route path={ROUTES.EDITOR} element={<EditorPage />} />
+
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
         </Routes>
     );
 }

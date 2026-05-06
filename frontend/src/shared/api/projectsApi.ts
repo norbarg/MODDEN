@@ -19,6 +19,13 @@ export const projectsApi = {
         });
     },
 
+    getProject(projectId: string) {
+        return apiRequest<WorkspaceProject>(`/projects/${projectId}`, {
+            method: 'GET',
+            auth: true,
+        });
+    },
+
     createProject(dto: CreateProjectRequest) {
         return apiRequest<WorkspaceProject>('/projects', {
             method: 'POST',

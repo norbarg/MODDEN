@@ -1,0 +1,23 @@
+.editor-layout {
+    min-height: 100vh;
+    display: flex;
+    background: #eef1f2;
+    color: #111111;
+}
+
+.editor-layout__workspace {
+    width: 100%;
+    min-width: 0;
+    padding-left: 90px;
+}
+
+.editor-layout__body {
+    min-height: calc(100vh - 54px);
+    display: flex;
+}
+
+@media (max-width: 760px) {
+    .editor-layout__workspace {
+        padding-left: 72px;
+    }
+}

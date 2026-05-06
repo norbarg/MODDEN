@@ -1,0 +1,94 @@
+.editor-header {
+    height: 54px;
+    padding: 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #c9d4d8;
+    box-sizing: border-box;
+}
+
+.editor-header__left,
+.editor-header__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.editor-header__size {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.editor-header strong {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.editor-header__divider {
+    width: 1px;
+    height: 24px;
+    background: #d6dee2;
+}
+
+.editor-header__icon-button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    color: #262444;
+    cursor: pointer;
+}
+
+.editor-header__save,
+.editor-header__share,
+.editor-header__download {
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.editor-header__save {
+    background: #edf2f3;
+    color: #8ea0a6;
+}
+
+.editor-header__share {
+    background: #262444;
+    color: #ffffff;
+}
+
+.editor-header__download {
+    background: #ff3d00;
+    color: #ffffff;
+}
+
+@media (max-width: 900px) {
+    .editor-header {
+        padding: 0 16px;
+    }
+
+    .editor-header__left {
+        min-width: 0;
+    }
+
+    .editor-header strong {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
