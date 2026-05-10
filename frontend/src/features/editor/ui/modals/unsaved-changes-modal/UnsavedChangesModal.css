@@ -1,0 +1,78 @@
+/* src/features/editor/ui/unsaved-changes-modal/UnsavedChangesModal.css */
+.unsaved-changes-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    display: grid;
+    place-items: center;
+}
+
+.unsaved-changes-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(16, 14, 34, 0.42);
+    cursor: pointer;
+}
+
+.unsaved-changes-modal__card {
+    position: relative;
+    z-index: 1;
+    width: min(470px, calc(100vw - 32px));
+    padding: 24px;
+    border-radius: 26px;
+    background: #ffffff;
+    box-shadow: 0 28px 70px rgba(18, 16, 35, 0.28);
+    box-sizing: border-box;
+}
+
+.unsaved-changes-modal__card h2 {
+    margin: 0 0 8px;
+    color: #272d43;
+    font-size: 24px;
+    line-height: 1.1;
+}
+
+.unsaved-changes-modal__card p {
+    margin: 0;
+    color: #708d96;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.unsaved-changes-modal__actions {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.unsaved-changes-modal__primary,
+.unsaved-changes-modal__secondary,
+.unsaved-changes-modal__ghost {
+    height: 36px;
+    border: 0;
+    border-radius: 14px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.unsaved-changes-modal__primary {
+    background: #ff3d00;
+    color: #ffffff;
+}
+
+.unsaved-changes-modal__secondary {
+    background: #f1f4f5;
+    color: #272d43;
+}
+
+.unsaved-changes-modal__ghost {
+    background: transparent;
+    color: #708d96;
+}

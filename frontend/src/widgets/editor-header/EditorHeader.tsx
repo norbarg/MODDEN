@@ -1,49 +1,107 @@
 // src/widgets/editor-header/EditorHeader.tsx
-import { ChevronLeft, ChevronRight, Download, Share2 } from 'lucide-react';
 import type { WorkspaceProject } from '../../shared/types/workspace';
 import './EditorHeader.css';
 
+import undoIcon from '../../assets/editor-header/undo.svg';
+import redoIcon from '../../assets/editor-header/redo.svg';
+import shareIcon from '../../assets/editor-header/share.svg';
+import downloadIcon from '../../assets/editor-header/download.svg';
+import savedIcon from '../../assets/editor-header/saved.svg';
+
 type EditorHeaderProps = {
     project: WorkspaceProject;
+    isDirty: boolean;
+    isSaving: boolean;
+    canUndo: boolean;
+    canRedo: boolean;
+    onUndo: () => void;
+    onRedo: () => void;
+    onOpenProjectSettings: () => void;
+    onOpenSaveProject: () => void;
 };
 
-export function EditorHeader({ project }: EditorHeaderProps) {
+export function EditorHeader({
+    project,
+    isDirty,
+    isSaving,
+    canUndo,
+    canRedo,
+    onUndo,
+    onRedo,
+    onOpenProjectSettings,
+    onOpenSaveProject,
+}: EditorHeaderProps) {
     return (
         <header className="editor-header">
             <div className="editor-header__left">
-                <span className="editor-header__size">
+                <button
+                    className="editor-header__meta-button editor-header__size"
+                    type="button"
+                    onClick={onOpenProjectSettings}
+                >
                     {project.canvasWidth} × {project.canvasHeight}
-                </span>
+                </button>
 
                 <span className="editor-header__divider" />
 
-                <strong>{project.title}</strong>
+                <button
+                    className="editor-header__meta-button editor-header__title"
+                    type="button"
+                    onClick={onOpenProjectSettings}
+                >
+                    {project.title}
+                </button>
             </div>
 
             <div className="editor-header__right">
-                <button className="editor-header__icon-button" type="button">
-                    <ChevronLeft size={22} />
-                </button>
+                <div className="unredo">
+                    <button
+                        className="editor-header__icon-button"
+                        type="button"
+                        aria-label="Undo"
+                        disabled={!canUndo}
+                        onClick={onUndo}
+                    >
+                        <img src={undoIcon} alt="" aria-hidden="true" />
+                    </button>
 
-                <button className="editor-header__icon-button" type="button">
-                    <ChevronRight size={22} />
-                </button>
+                    <button
+                        className="editor-header__icon-button"
+                        type="button"
+                        aria-label="Redo"
+                        disabled={!canRedo}
+                        onClick={onRedo}
+                    >
+                        <img src={redoIcon} alt="" aria-hidden="true" />
+                    </button>
+                </div>
 
                 <span className="editor-header__divider" />
 
-                <button className="editor-header__save" type="button" disabled>
-                    Save
+                <button
+                    className={`editor-header__save ${
+                        !isDirty ? 'editor-header__save--saved' : ''
+                    }`}
+                    type="button"
+                    disabled={isSaving || !isDirty}
+                    onClick={onOpenSaveProject}
+                >
+                    {!isDirty && (
+                        <img src={savedIcon} alt="" aria-hidden="true" />
+                    )}
+
+                    {isSaving ? 'Saving...' : isDirty ? 'Save' : 'Saved'}
                 </button>
 
                 <button className="editor-header__share" type="button">
-                    <Share2 size={16} />
+                    <img src={shareIcon} alt="" aria-hidden="true" />
                     Share
                 </button>
 
                 <span className="editor-header__divider" />
 
                 <button className="editor-header__download" type="button">
-                    <Download size={16} />
+                    <img src={downloadIcon} alt="" aria-hidden="true" />
                     Download
                 </button>
             </div>

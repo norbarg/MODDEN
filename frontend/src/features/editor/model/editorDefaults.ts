@@ -19,7 +19,11 @@ export function normalizeEditorScene(
         typeof sceneJson.background === 'object' &&
         Array.isArray(sceneJson.objects)
     ) {
-        return sceneJson as EditorScene;
+        return {
+            version: 1,
+            background: sceneJson.background as EditorScene['background'],
+            objects: sceneJson.objects as EditorScene['objects'],
+        };
     }
 
     return DEFAULT_EDITOR_SCENE;

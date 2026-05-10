@@ -132,6 +132,8 @@ export async function apiRequest<T>(
                 retryOnUnauthorized: false,
             });
         }
+
+        throw new ApiError('Unauthorized', 401);
     }
 
     return parseResponse<T>(response);

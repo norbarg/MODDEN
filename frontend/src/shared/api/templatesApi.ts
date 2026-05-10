@@ -6,10 +6,25 @@ function buildCategoryQuery(category?: TemplateCategory) {
     return category ? `?category=${category}` : '';
 }
 
+export type CreateTemplateRequest = {
+    sourceProjectId?: string | null;
+    title: string;
+    category: TemplateCategory;
+    canvasWidth: number;
+    canvasHeight: number;
+    sceneJson: Record<string, unknown>;
+    thumbnailUrl?: string | null;
+    isPublic: boolean;
+};
+
 export type UpdateTemplateRequest = {
     title?: string;
+    category?: TemplateCategory;
     canvasWidth?: number;
     canvasHeight?: number;
+    sceneJson?: Record<string, unknown>;
+    thumbnailUrl?: string | null;
+    isPublic?: boolean;
 };
 
 export const templatesApi = {
@@ -60,6 +75,14 @@ export const templatesApi = {
         );
 
         return Array.from(templatesById.values());
+    },
+
+    createTemplate(dto: CreateTemplateRequest) {
+        return apiRequest<WorkspaceTemplate>('/templates', {
+            method: 'POST',
+            auth: true,
+            body: JSON.stringify(dto),
+        });
     },
 
     updateTemplate(templateId: string, dto: UpdateTemplateRequest) {

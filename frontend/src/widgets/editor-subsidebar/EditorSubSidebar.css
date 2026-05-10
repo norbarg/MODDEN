@@ -1,8 +1,15 @@
+/* src/widgets/editor-subsidebar/EditorSubSidebar.css */
+
 .editor-subsidebar {
-    width: 260px;
-    min-height: calc(100vh - 54px);
-    padding: 22px;
-    background: #ffffff;
-    border-right: 1px solid #d6dee2;
+    position: absolute;
+    left: 0;
+    top: 100px;
+    z-index: 30;
+    width: 65px;
+    padding: 16px 0;
+    background: #2a284c;
+    border-radius: 0 24px 24px 0;
+    box-shadow: 12px 0 28px rgba(20, 20, 35, 0.18);
     box-sizing: border-box;
+    overflow: visible;
 }

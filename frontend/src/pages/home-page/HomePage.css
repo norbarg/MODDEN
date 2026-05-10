@@ -2,6 +2,9 @@
     --workspace-sidebar-width: 90px;
     --workspace-page-max-width: 1200px;
 }
+.home-page {
+    padding-bottom: 80px;
+}
 
 .workspace-hero {
     padding: 70px 0px 70px;

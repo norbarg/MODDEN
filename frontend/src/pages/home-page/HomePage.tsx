@@ -26,12 +26,12 @@ import socialMediaIcon from '../../assets/home-page/social-media.svg';
 import wallpapersIcon from '../../assets/home-page/wallpapers.svg';
 import './HomePage.css';
 
-import { ProjectCard } from '../../shared/ui/project-card';
-import { CustomTemplateCard } from '../../shared/ui/custom-template-card';
+import { ProjectCard } from '../../features/workspace/ui/project-card';
+import { CustomTemplateCard } from '../../features/workspace/ui/custom-template-card';
 import {
     CreateProjectModal,
     type CreateProjectFormValues,
-} from '../../shared/ui/create-project-modal';
+} from '../../features/workspace/ui/create-project-modal';
 
 type WorkspaceOutletContext = {
     user: AuthUser | null;
@@ -312,167 +312,176 @@ export function HomePage() {
 
     return (
         <>
-            <section className="workspace-hero">
-                <div>
-                    <h1>What would you like to create?</h1>
-                    <p>
-                        Start with a template or build your design from scratch.
-                    </p>
-                </div>
-            </section>
-
-            <section
-                className="template-strip"
-                id="workspace-templates"
-                aria-label="Template categories"
-            >
-                {TEMPLATE_CATEGORIES.map((item) => {
-                    return (
-                        <button
-                            className="template-strip__item"
-                            type="button"
-                            key={item.category}
-                            onClick={() => {
-                                const searchParams =
-                                    item.category === 'ALL'
-                                        ? ''
-                                        : `?category=${item.category}`;
-
-                                navigate(`${ROUTES.TEMPLATES}${searchParams}`);
-                            }}
-                        >
-                            <span
-                                className="template-strip__icon"
-                                style={
-                                    {
-                                        '--template-icon-bg': item.color,
-                                    } as CSSProperties
-                                }
-                            >
-                                <img
-                                    src={item.icon}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="template-strip__icon-img"
-                                />
-                            </span>
-
-                            <span>{item.label}</span>
-                        </button>
-                    );
-                })}
-            </section>
-
-            <section className="workspace-content" id="workspace-projects">
-                <div className="workspace-heading-row">
+            <main className="home-page">
+                <section className="workspace-hero">
                     <div>
-                        <h2>{getDisplayName(user)} Visual Workspace</h2>
+                        <h1>What would you like to create?</h1>
                         <p>
-                            View and manage all your projects, including visuals
-                            and image files
+                            Start with a template or build your design from
+                            scratch.
                         </p>
                     </div>
+                </section>
 
-                    <div className="workspace-toolbar">
-                        <label className="workspace-search">
-                            <img
-                                className="workspace-search__icon"
-                                src={searchIcon}
-                                alt=""
-                                aria-hidden="true"
-                            />
+                <section
+                    className="template-strip"
+                    id="workspace-templates"
+                    aria-label="Template categories"
+                >
+                    {TEMPLATE_CATEGORIES.map((item) => {
+                        return (
+                            <button
+                                className="template-strip__item"
+                                type="button"
+                                key={item.category}
+                                onClick={() => {
+                                    const searchParams =
+                                        item.category === 'ALL'
+                                            ? ''
+                                            : `?category=${item.category}`;
 
-                            <input
-                                type="search"
-                                placeholder="Search your projects"
-                                value={searchQuery}
-                                onChange={(event) =>
-                                    setSearchQuery(event.target.value)
-                                }
-                            />
-                        </label>
-
-                        <label className="workspace-sort">
-                            <span className="workspace-sort__label">
-                                {SORT_LABELS[sortMode]}
-                            </span>
-
-                            <img
-                                className="workspace-sort__icon"
-                                src={arrowDownIcon}
-                                alt=""
-                                aria-hidden="true"
-                            />
-
-                            <select
-                                value={sortMode}
-                                onChange={(event) =>
-                                    setSortMode(event.target.value as SortMode)
-                                }
+                                    navigate(
+                                        `${ROUTES.TEMPLATES}${searchParams}`,
+                                    );
+                                }}
                             >
-                                <option value="lastModified">
-                                    Last Modified
-                                </option>
-                                <option value="oldest">Oldest First</option>
-                                <option value="titleAsc">Title A-Z</option>
-                                <option value="titleDesc">Title Z-A</option>
-                            </select>
-                        </label>
+                                <span
+                                    className="template-strip__icon"
+                                    style={
+                                        {
+                                            '--template-icon-bg': item.color,
+                                        } as CSSProperties
+                                    }
+                                >
+                                    <img
+                                        src={item.icon}
+                                        alt=""
+                                        aria-hidden="true"
+                                        className="template-strip__icon-img"
+                                    />
+                                </span>
+
+                                <span>{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </section>
+
+                <section className="workspace-content" id="workspace-projects">
+                    <div className="workspace-heading-row">
+                        <div>
+                            <h2>{getDisplayName(user)} Visual Workspace</h2>
+                            <p>
+                                View and manage all your projects, including
+                                visuals and image files
+                            </p>
+                        </div>
+
+                        <div className="workspace-toolbar">
+                            <label className="workspace-search">
+                                <img
+                                    className="workspace-search__icon"
+                                    src={searchIcon}
+                                    alt=""
+                                    aria-hidden="true"
+                                />
+
+                                <input
+                                    type="search"
+                                    placeholder="Search your projects"
+                                    value={searchQuery}
+                                    onChange={(event) =>
+                                        setSearchQuery(event.target.value)
+                                    }
+                                />
+                            </label>
+
+                            <label className="workspace-sort">
+                                <span className="workspace-sort__label">
+                                    {SORT_LABELS[sortMode]}
+                                </span>
+
+                                <img
+                                    className="workspace-sort__icon"
+                                    src={arrowDownIcon}
+                                    alt=""
+                                    aria-hidden="true"
+                                />
+
+                                <select
+                                    value={sortMode}
+                                    onChange={(event) =>
+                                        setSortMode(
+                                            event.target.value as SortMode,
+                                        )
+                                    }
+                                >
+                                    <option value="lastModified">
+                                        Last Modified
+                                    </option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="titleAsc">Title A-Z</option>
+                                    <option value="titleDesc">Title Z-A</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
-                </div>
 
-                <div className="workspace-grid">
-                    <CustomTemplateCard
-                        disabled={isLoading}
-                        onClick={() => setIsCreateModalOpen(true)}
-                    />
+                    <div className="workspace-grid">
+                        <CustomTemplateCard
+                            disabled={isLoading}
+                            onClick={() => setIsCreateModalOpen(true)}
+                        />
 
-                    {isLoading && (
-                        <>
-                            <div className="workspace-project-skeleton" />
-                            <div className="workspace-project-skeleton" />
-                        </>
-                    )}
+                        {isLoading && (
+                            <>
+                                <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
+                            </>
+                        )}
 
-                    {!isLoading &&
-                        filteredProjects.map((project) => (
-                            <ProjectCard
-                                project={project}
-                                key={project.id}
-                                onClick={(selectedProject) =>
-                                    navigate(getEditorRoute(selectedProject))
-                                }
-                                onEdit={handleOpenEditProjectModal}
-                                onDelete={handleDeleteProject}
-                            />
-                        ))}
-                </div>
-            </section>
-            <CreateProjectModal
-                isOpen={isCreateModalOpen}
-                isCreating={isCreating}
-                onClose={() => setIsCreateModalOpen(false)}
-                onCreate={handleCreateCustomProject}
-            />
-            <CreateProjectModal
-                isOpen={isEditModalOpen}
-                isCreating={isCreating}
-                mode="edit"
-                initialValues={
-                    editingProject
-                        ? {
-                              title: editingProject.title,
-                              canvasWidth: editingProject.canvasWidth,
-                              canvasHeight: editingProject.canvasHeight,
-                          }
-                        : undefined
-                }
-                onClose={() => {
-                    setIsEditModalOpen(false);
-                    setEditingProject(null);
-                }}
-                onCreate={handleUpdateProject}
-            />
+                        {!isLoading &&
+                            filteredProjects.map((project) => (
+                                <ProjectCard
+                                    project={project}
+                                    key={project.id}
+                                    onClick={(selectedProject) =>
+                                        navigate(
+                                            getEditorRoute(selectedProject),
+                                        )
+                                    }
+                                    onEdit={handleOpenEditProjectModal}
+                                    onDelete={handleDeleteProject}
+                                />
+                            ))}
+                    </div>
+                </section>
+                <CreateProjectModal
+                    isOpen={isCreateModalOpen}
+                    isCreating={isCreating}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onCreate={handleCreateCustomProject}
+                />
+                <CreateProjectModal
+                    isOpen={isEditModalOpen}
+                    isCreating={isCreating}
+                    mode="edit"
+                    initialValues={
+                        editingProject
+                            ? {
+                                  title: editingProject.title,
+                                  canvasWidth: editingProject.canvasWidth,
+                                  canvasHeight: editingProject.canvasHeight,
+                              }
+                            : undefined
+                    }
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setEditingProject(null);
+                    }}
+                    onCreate={handleUpdateProject}
+                />
+            </main>
         </>
     );
 }

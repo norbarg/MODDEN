@@ -243,27 +243,20 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET,
       });
     } catch {
+      await this.usersService.deleteRefreshToken(refreshToken);
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const accessExpiresIn =
-      (process.env.JWT_ACCESS_EXPIRES_IN as StringValue) || '15m';
+    const user = await this.usersService.findById(payload.sub);
 
-    const newAccessToken = await this.jwtService.signAsync(
-      {
-        sub: payload.sub,
-        email: payload.email,
-        username: payload.username,
-      },
-      {
-        secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: accessExpiresIn,
-      },
-    );
+    if (!user) {
+      await this.usersService.deleteRefreshToken(refreshToken);
+      throw new UnauthorizedException('User not found');
+    }
 
-    return {
-      accessToken: newAccessToken,
-    };
+    await this.usersService.deleteRefreshToken(refreshToken);
+
+    return this.createAuthResponse(user);
   }
 
   async logout(refreshToken: string) {

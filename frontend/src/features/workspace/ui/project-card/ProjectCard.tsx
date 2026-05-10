@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
-import editIcon from '../../../assets/project-card/edit.svg';
-import deleteIcon from '../../../assets/project-card/delete.svg';
-import type { WorkspaceProject } from '../../types/workspace';
+import editIcon from '../../../../assets/project-card/edit.svg';
+import deleteIcon from '../../../../assets/project-card/delete.svg';
+import type { WorkspaceProject } from '../../../../shared/types/workspace';
 import './ProjectCard.css';
 
 type ProjectCardProps = {

@@ -1,27 +1,87 @@
 .editor-subheader {
-    height: 42px;
-    padding: 0 38px;
+    position: absolute;
+    top: 24px;
+    right: 46px;
+    z-index: 15;
+
+    min-width: 178px;
+    height: 54px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    gap: 13px;
+
+    border-radius: 24px;
     background: #ffffff;
-    border-bottom: 1px solid #d6dee2;
+    box-shadow: 0 14px 28px rgba(20, 20, 35, 0.18);
     box-sizing: border-box;
 }
 
-.editor-subheader strong {
-    color: #262444;
-    font-size: 13px;
-    font-weight: 700;
+.editor-subheader--canvas {
+    min-width: 65px;
+    width: 65px;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
-.editor-subheader span {
-    color: #708d96;
-    font-size: 12px;
+.editor-subheader__canvas-color {
+    width: 65px;
+    height: 54px;
+    border: 0;
+    border-radius: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #2a284c;
+    box-shadow: 0 10px 24px rgba(21, 19, 45, 0.25);
+    cursor: pointer;
+}
+
+.editor-subheader__canvas-color span {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--canvas-color);
+}
+
+.editor-subheader__color {
+    width: 19px;
+    height: 19px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--current-color);
+    cursor: pointer;
+}
+
+.editor-subheader__button {
+    width: 23px;
+    height: 23px;
+    border: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    cursor: pointer;
+}
+
+.editor-subheader__button img {
+    width: 17px;
+    height: 17px;
+    display: block;
+    object-fit: contain;
+}
+
+.editor-subheader__divider {
+    width: 2px;
+    height: 22px;
+    border-radius: 999px;
+    background: #dde3e5;
 }
 
 @media (max-width: 900px) {
     .editor-subheader {
-        padding: 0 16px;
+        right: 18px;
     }
 }

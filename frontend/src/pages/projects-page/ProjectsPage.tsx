@@ -2,11 +2,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { projectsApi } from '../../shared/api/projectsApi';
 import type { WorkspaceProject } from '../../shared/types/workspace';
-import { ProjectCard } from '../../shared/ui/project-card';
+import { ProjectCard } from '../../features/workspace/ui/project-card';
 import {
     CreateProjectModal,
     type CreateProjectFormValues,
-} from '../../shared/ui/create-project-modal';
+} from '../../features/workspace/ui/create-project-modal';
 import { useNavigate } from 'react-router-dom';
 import { getEditorRoute } from '../../shared/routes/routes';
 

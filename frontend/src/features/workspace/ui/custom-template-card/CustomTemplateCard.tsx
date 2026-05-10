@@ -1,4 +1,4 @@
-import customPlusIcon from '../../../assets/home-page/custom-plus.svg';
+import customPlusIcon from '../../../../assets/home-page/custom-plus.svg';
 import './CustomTemplateCard.css';
 
 type CustomTemplateCardProps = {

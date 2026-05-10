@@ -1,12 +1,17 @@
 .editor-header {
-    height: 54px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex-shrink: 0;
+
+    height: 65px;
     padding: 0 38px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     background: #ffffff;
-    border-bottom: 1px solid #c9d4d8;
+    border-bottom: 1px solid #a7b7bc;
     box-sizing: border-box;
 }
 
@@ -17,22 +22,42 @@
     gap: 16px;
 }
 
-.editor-header__size {
-    font-size: 13px;
-    font-weight: 700;
+.editor-header__meta-button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #000;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.editor-header strong {
-    font-size: 13px;
-    font-weight: 700;
+.editor-header__meta-button:hover {
+    color: #ff3d00;
+}
+
+.editor-header__size {
+    min-width: max-content;
+}
+
+.editor-header__title {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .editor-header__divider {
-    width: 1px;
-    height: 24px;
-    background: #d6dee2;
+    width: 4px;
+    border-radius: 50px;
+    height: 30px;
+    background: #dde3e5;
 }
-
+.unredo {
+    display: flex;
+    gap: 0px;
+}
 .editor-header__icon-button {
     width: 28px;
     height: 28px;
@@ -41,39 +66,78 @@
     display: grid;
     place-items: center;
     background: transparent;
-    color: #262444;
     cursor: pointer;
+}
+
+.editor-header__icon-button img {
+    width: auto;
+    height: 20px;
+    display: block;
+    object-fit: contain;
 }
 
 .editor-header__save,
 .editor-header__share,
 .editor-header__download {
-    height: 28px;
+    height: 30px;
     border: 0;
     border-radius: 999px;
-    padding: 0 14px;
+    padding: 0 12px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font: inherit;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
 }
 
 .editor-header__save {
-    background: #edf2f3;
-    color: #8ea0a6;
+    background: #d9d9d9;
+    color: #708d96;
+}
+
+.editor-header__save--saved {
+    background: #dfe9e8;
+    color: #708d96;
+}
+
+.editor-header__save:disabled {
+    cursor: default;
+}
+
+.editor-header__save img {
+    width: 14px;
+    height: 14px;
+    display: block;
+    object-fit: contain;
 }
 
 .editor-header__share {
-    background: #262444;
+    background: #272d43;
     color: #ffffff;
 }
 
 .editor-header__download {
     background: #ff3d00;
     color: #ffffff;
+}
+
+.editor-header__share img,
+.editor-header__download img {
+    width: 16px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+}
+
+.editor-header__icon-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.editor-header__icon-button:disabled:hover {
+    background: transparent;
 }
 
 @media (max-width: 900px) {
@@ -85,10 +149,7 @@
         min-width: 0;
     }
 
-    .editor-header strong {
+    .editor-header__title {
         max-width: 130px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 }

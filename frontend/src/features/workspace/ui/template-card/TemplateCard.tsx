@@ -1,9 +1,9 @@
 // src/shared/ui/template-card/TemplateCard.tsx
 import { useEffect, useRef, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
-import type { WorkspaceTemplate } from '../../types/workspace';
-import editIcon from '../../../assets/project-card/edit.svg';
-import deleteIcon from '../../../assets/project-card/delete.svg';
+import type { WorkspaceTemplate } from '../../../../shared/types/workspace';
+import editIcon from '../../../../assets/project-card/edit.svg';
+import deleteIcon from '../../../../assets/project-card/delete.svg';
 import './TemplateCard.css';
 
 type TemplateCardProps = {

@@ -9,6 +9,8 @@ export type UpdateProjectRequest = {
     title?: string;
     canvasWidth?: number;
     canvasHeight?: number;
+    sceneJson?: Record<string, unknown>;
+    thumbnailUrl?: string | null;
 };
 
 export const projectsApi = {

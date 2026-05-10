@@ -5,14 +5,14 @@ import type { AuthUser } from '../../shared/types/auth';
 import {
     CreateProjectModal,
     type CreateProjectFormValues,
-} from '../../shared/ui/create-project-modal';
+} from '../../features/workspace/ui/create-project-modal';
 
 import type {
     TemplateCategory,
     WorkspaceTemplate,
 } from '../../shared/types/workspace';
 import { templatesApi } from '../../shared/api/templatesApi';
-import { TemplateCard } from '../../shared/ui/template-card';
+import { TemplateCard } from '../../features/workspace/ui/template-card';
 
 import searchIcon from '../../assets/home-page/search.svg';
 import arrowDownIcon from '../../assets/home-page/arrow-down.svg';

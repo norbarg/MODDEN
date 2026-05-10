@@ -7,7 +7,6 @@
 .workspace-layout__content {
     width: 100%;
     min-width: 0;
-    padding-bottom: 80px;
 }
 
 .workspace-layout__loader {
