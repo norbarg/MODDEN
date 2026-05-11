@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../shared/api/authApi';
 import { ROUTES } from '../../shared/routes/routes';
 import { authStorage } from '../../shared/auth/authStorage';
-import { GoogleAuthButton } from '../../shared/ui/google-auth-button/GoogleAuthButton';
+import { GoogleAuthButton } from '../../features/workspace/ui/google-auth-button/GoogleAuthButton';
 import logoWhite from '../../assets/modden-logo-white.svg';
 import logoOrange from '../../assets/modden-logo-orange.svg';
 import authBg from '../../assets/auth-bg-register.svg';
@@ -13,212 +13,255 @@ import './RegisterPage.css';
 type RegisterStep = 'form' | 'waiting-verification';
 
 export function RegisterPage() {
-  const [step, setStep] = useState<RegisterStep>('form');
+    const [step, setStep] = useState<RegisterStep>('form');
 
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-  const [confirmPassword, setConfirmPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [googleMessage, setGoogleMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [googleMessage, setGoogleMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
-  const clearMessages = () => {
-    setError('');
-    setGoogleMessage('');
-  };
-
-  const saveAuthResponse = (
-    response: Awaited<ReturnType<typeof authApi.googleLogin>>,
-) => {
-    authStorage.setAccessToken(response.accessToken);
-    authStorage.setRefreshToken(response.refreshToken);
-    authStorage.setUser(response.user);
-};
-
-const handleGoogleSuccess = async (credential: string) => {
-    try {
-        setIsLoading(true);
+    const clearMessages = () => {
         setError('');
-        setSuccessMessage('');
         setGoogleMessage('');
+    };
 
-        const response = await authApi.googleLogin(credential);
+    const saveAuthResponse = (
+        response: Awaited<ReturnType<typeof authApi.googleLogin>>,
+    ) => {
+        authStorage.setAccessToken(response.accessToken);
+        authStorage.setRefreshToken(response.refreshToken);
+        authStorage.setUser(response.user);
+    };
 
-        saveAuthResponse(response);
-        navigate(ROUTES.HOME);
-    } catch (err) {
-        setError(
-            err instanceof Error ? err.message : 'Google registration failed.',
-        );
-    } finally {
-        setIsLoading(false);
-    }
-};
+    const handleGoogleSuccess = async (credential: string) => {
+        try {
+            setIsLoading(true);
+            setError('');
+            setSuccessMessage('');
+            setGoogleMessage('');
 
-  const validateForm = () => {
-    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError('Please fill in all fields.');
-      return false;
-    }
+            const response = await authApi.googleLogin(credential);
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return false;
-    }
+            saveAuthResponse(response);
+            navigate(ROUTES.HOME);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Google registration failed.',
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return false;
-    }
+    const validateForm = () => {
+        if (
+            !username.trim() ||
+            !email.trim() ||
+            !password.trim() ||
+            !confirmPassword.trim()
+        ) {
+            setError('Please fill in all fields.');
+            return false;
+        }
 
-    return true;
-  };
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters.');
+            return false;
+        }
 
-  const handleInitialRegister = async () => {
-    if (!validateForm()) return;
+        if (password !== confirmPassword) {
+            setError('Passwords do not match.');
+            return false;
+        }
 
-    try {
-      setIsLoading(true);
-      setError('');
-      setSuccessMessage('');
-      setGoogleMessage('');
+        return true;
+    };
 
-      await authApi.register({
-        username: username.trim(),
-        email: email.trim(),
-        password,
-      });
+    const handleInitialRegister = async () => {
+        if (!validateForm()) return;
 
-      setStep('waiting-verification');
+        try {
+            setIsLoading(true);
+            setError('');
+            setSuccessMessage('');
+            setGoogleMessage('');
 
-      setSuccessMessage(
-        'Account was created. Please check your email and confirm your address.',
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            await authApi.register({
+                username: username.trim(),
+                email: email.trim(),
+                password,
+            });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+            setStep('waiting-verification');
 
-    if (step === 'waiting-verification') {
-      setError('Please verify your email first. Then go to the sign in page.');
-      return;
-    }
+            setSuccessMessage(
+                'Account was created. Please check your email and confirm your address.',
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : 'Registration failed.',
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    await handleInitialRegister();
-  };
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 
-  return (
-    <main className="auth-page auth-page--transition" style={{ backgroundImage: `url(${authBg})` }}>
-      <section className="auth-page__brand">
-        <img src={logoWhite} alt="MODDEN" className="auth-page__main-logo" />
-        <p>Sign in or create an account</p>
-      </section>
+        if (step === 'waiting-verification') {
+            setError(
+                'Please verify your email first. Then go to the sign in page.',
+            );
+            return;
+        }
 
-      <section className="auth-card auth-card--register">
-        <img src={logoOrange} alt="MODDEN" className="auth-card__corner-logo" />
+        await handleInitialRegister();
+    };
 
-        <h1>Create an account</h1>
+    return (
+        <main
+            className="auth-page auth-page--transition"
+            style={{ backgroundImage: `url(${authBg})` }}
+        >
+            <section className="auth-page__brand">
+                <img
+                    src={logoWhite}
+                    alt="MODDEN"
+                    className="auth-page__main-logo"
+                />
+                <p>Sign in or create an account</p>
+            </section>
 
-        <p className="auth-card__subtitle">
-          Already have an account? <Link to={ROUTES.LOGIN}>Sign in</Link>
-        </p>
+            <section className="auth-card auth-card--register">
+                <img
+                    src={logoOrange}
+                    alt="MODDEN"
+                    className="auth-card__corner-logo"
+                />
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span>Login</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              onFocus={clearMessages}
-              disabled={step !== 'form'}
-              autoComplete="username"
-            />
-          </label>
+                <h1>Create an account</h1>
 
-          <label className="auth-field">
-            <span>Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              onFocus={clearMessages}
-              disabled={step !== 'form'}
-              autoComplete="email"
-            />
-          </label>
-
-          <label className="auth-field">
-            <span>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              onFocus={clearMessages}
-              disabled={step !== 'form'}
-              autoComplete="new-password"
-            />
-          </label>
-
-          <label className="auth-field">
-            <span>Confirm Password</span>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              onFocus={clearMessages}
-              disabled={step !== 'form'}
-              autoComplete="new-password"
-            />
-          </label>
-
-          {successMessage && (
-            <div className="auth-alert auth-alert--success">
-              <p>{successMessage}</p>
-
-              {step === 'waiting-verification' && (
-                <p className="auth-alert__small">
-                  Check your email and click the verification button. After confirmation, go to the sign in page.
+                <p className="auth-card__subtitle">
+                    Already have an account?{' '}
+                    <Link to={ROUTES.LOGIN}>Sign in</Link>
                 </p>
-              )}
-            </div>
-          )}
 
-          {error && <p className="auth-message auth-message--error">{error}</p>}
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    <label className="auth-field">
+                        <span>Login</span>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(event) =>
+                                setUsername(event.target.value)
+                            }
+                            onFocus={clearMessages}
+                            disabled={step !== 'form'}
+                            autoComplete="username"
+                        />
+                    </label>
 
-          <button className="auth-submit" type="submit" disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Create'}
-          </button>
-        </form>
+                    <label className="auth-field">
+                        <span>Email</span>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
+                            onFocus={clearMessages}
+                            disabled={step !== 'form'}
+                            autoComplete="email"
+                        />
+                    </label>
 
-        <div className="auth-divider">
-          <span />
-          <p>Or</p>
-          <span />
-        </div>
+                    <label className="auth-field">
+                        <span>Password</span>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(event) =>
+                                setPassword(event.target.value)
+                            }
+                            onFocus={clearMessages}
+                            disabled={step !== 'form'}
+                            autoComplete="new-password"
+                        />
+                    </label>
 
-        <GoogleAuthButton
-    isLoading={isLoading}
-    onSuccess={(credential) => {
-        void handleGoogleSuccess(credential);
-    }}
-    onError={() => {
-        setError('Google registration failed.');
-    }}
-/>
+                    <label className="auth-field">
+                        <span>Confirm Password</span>
+                        <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(event) =>
+                                setConfirmPassword(event.target.value)
+                            }
+                            onFocus={clearMessages}
+                            disabled={step !== 'form'}
+                            autoComplete="new-password"
+                        />
+                    </label>
 
-        {googleMessage && <p className="auth-message auth-message--info">{googleMessage}</p>}
-      </section>
-    </main>
-  );
+                    {successMessage && (
+                        <div className="auth-alert auth-alert--success">
+                            <p>{successMessage}</p>
+
+                            {step === 'waiting-verification' && (
+                                <p className="auth-alert__small">
+                                    Check your email and click the verification
+                                    button. After confirmation, go to the sign
+                                    in page.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {error && (
+                        <p className="auth-message auth-message--error">
+                            {error}
+                        </p>
+                    )}
+
+                    <button
+                        className="auth-submit"
+                        type="submit"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Loading...' : 'Create'}
+                    </button>
+                </form>
+
+                <div className="auth-divider">
+                    <span />
+                    <p>Or</p>
+                    <span />
+                </div>
+
+                <GoogleAuthButton
+                    isLoading={isLoading}
+                    onSuccess={(credential) => {
+                        void handleGoogleSuccess(credential);
+                    }}
+                    onError={() => {
+                        setError('Google registration failed.');
+                    }}
+                />
+
+                {googleMessage && (
+                    <p className="auth-message auth-message--info">
+                        {googleMessage}
+                    </p>
+                )}
+            </section>
+        </main>
+    );
 }

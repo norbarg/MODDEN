@@ -1,6 +1,6 @@
 // src/shared/ui/google-auth-button/GoogleAuthButton.tsx
 import { GoogleLogin } from '@react-oauth/google';
-import googleLogo from '../../../assets/google-logo.svg';
+import googleLogo from '../../../../assets/google-logo.svg';
 import './GoogleAuthButton.css';
 
 type GoogleAuthButtonProps = {

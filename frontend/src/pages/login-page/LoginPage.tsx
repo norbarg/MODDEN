@@ -1,7 +1,7 @@
 // pages/login-page/LoginPage.tsx
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { GoogleAuthButton } from '../../shared/ui/google-auth-button/GoogleAuthButton';
+import { GoogleAuthButton } from '../../features/workspace/ui/google-auth-button/GoogleAuthButton';
 import { authApi } from '../../shared/api/authApi';
 import { authStorage } from '../../shared/auth/authStorage';
 import { ROUTES } from '../../shared/routes/routes';
@@ -156,14 +156,14 @@ export function LoginPage() {
                     <span />
                 </div>
                 <GoogleAuthButton
-    isLoading={isLoading}
-    onSuccess={(credential) => {
-        void handleGoogleSuccess(credential);
-    }}
-    onError={() => {
-        setError('Google login failed.');
-    }}
-/>
+                    isLoading={isLoading}
+                    onSuccess={(credential) => {
+                        void handleGoogleSuccess(credential);
+                    }}
+                    onError={() => {
+                        setError('Google login failed.');
+                    }}
+                />
 
                 {googleMessage && (
                     <p className="auth-message auth-message--info">
