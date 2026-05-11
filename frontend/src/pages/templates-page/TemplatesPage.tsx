@@ -13,6 +13,7 @@ import type {
 } from '../../shared/types/workspace';
 import { templatesApi } from '../../shared/api/templatesApi';
 import { TemplateCard } from '../../features/workspace/ui/template-card';
+import { useCreateProjectFromTemplate } from '../../features/workspace/model/useCreateProjectFromTemplate';
 
 import searchIcon from '../../assets/home-page/search.svg';
 import arrowDownIcon from '../../assets/home-page/arrow-down.svg';
@@ -97,6 +98,12 @@ export function TemplatesPage() {
     const outletContext = useOutletContext<WorkspaceOutletContext | null>();
     const user = outletContext?.user ?? null;
 
+    const [selectedTemplate, setSelectedTemplate] =
+        useState<WorkspaceTemplate | null>(null);
+
+    const { creatingTemplateId, createProjectFromTemplate } =
+        useCreateProjectFromTemplate();
+
     const [editingTemplate, setEditingTemplate] =
         useState<WorkspaceTemplate | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -153,7 +160,8 @@ export function TemplatesPage() {
                     activeFilter === 'ALL'
                         ? true
                         : activeFilter === 'MY_TEMPLATES'
-                          ? Boolean(template.ownerUserId) && !template.isSystem
+                          ? template.ownerUserId === user?.id &&
+                            !template.isSystem
                           : template.category === activeFilter;
 
                 const matchesSearch =
@@ -229,14 +237,6 @@ export function TemplatesPage() {
     };
 
     const handleDeleteTemplate = async (template: WorkspaceTemplate) => {
-        const shouldDelete = window.confirm(
-            `Delete template "${template.title}"?`,
-        );
-
-        if (!shouldDelete) {
-            return;
-        }
-
         try {
             await templatesApi.deleteTemplate(template.id);
 
@@ -262,7 +262,18 @@ export function TemplatesPage() {
     };
 
     const handleTemplateClick = (template: WorkspaceTemplate) => {
-        console.log('Template selected:', template);
+        setSelectedTemplate(template);
+    };
+
+    const handleCreateProjectFromSelectedTemplate = async (
+        values: CreateProjectFormValues,
+    ) => {
+        if (!selectedTemplate) {
+            return;
+        }
+
+        await createProjectFromTemplate(selectedTemplate, values);
+        setSelectedTemplate(null);
     };
 
     return (
@@ -349,6 +360,26 @@ export function TemplatesPage() {
                     ))}
             </section>
             <CreateProjectModal
+                isOpen={Boolean(selectedTemplate)}
+                isCreating={
+                    selectedTemplate
+                        ? creatingTemplateId === selectedTemplate.id
+                        : false
+                }
+                initialValues={
+                    selectedTemplate
+                        ? {
+                              title: selectedTemplate.title,
+                              canvasWidth: selectedTemplate.canvasWidth,
+                              canvasHeight: selectedTemplate.canvasHeight,
+                          }
+                        : undefined
+                }
+                onClose={() => setSelectedTemplate(null)}
+                onCreate={handleCreateProjectFromSelectedTemplate}
+            />
+
+            <CreateProjectModal
                 isOpen={isEditModalOpen}
                 isCreating={isSavingTemplate}
                 mode="edit"
@@ -362,8 +393,8 @@ export function TemplatesPage() {
                         : undefined
                 }
                 onClose={() => {
-                    setIsEditModalOpen(false);
                     setEditingTemplate(null);
+                    setIsEditModalOpen(false);
                 }}
                 onCreate={handleUpdateTemplate}
             />

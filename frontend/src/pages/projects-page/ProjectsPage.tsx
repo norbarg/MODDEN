@@ -157,14 +157,6 @@ export function ProjectsPage() {
     };
 
     const handleDeleteProject = async (project: WorkspaceProject) => {
-        const shouldDelete = window.confirm(
-            `Delete project "${project.title}"?`,
-        );
-
-        if (!shouldDelete) {
-            return;
-        }
-
         try {
             await projectsApi.deleteProject(project.id);
 

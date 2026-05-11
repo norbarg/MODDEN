@@ -22,30 +22,6 @@
     box-shadow: 0 2px 6px rgba(15, 15, 25, 0.04);
 }
 
-/* .editor-canvas__color-button {
-    position: fixed;
-    right: 42px;
-    top: 78px;
-    z-index: 5;
-    width: 65px;
-    height: 54px;
-    border: 0;
-    border-radius: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #2a284c;
-    box-shadow: 0 10px 24px rgba(21, 19, 45, 0.25);
-    cursor: pointer;
-}
-
-.editor-canvas__color-button span {
-    width: 20px;
-    height: 20px;
-    border-radius: 999px;
-    background: #ffffff;
-} */
-
 .editor-zoom-controls {
     position: fixed;
     right: 32px;

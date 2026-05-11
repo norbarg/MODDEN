@@ -1,18 +1,14 @@
 // src/features/editor/ui/save-project-modal/SaveProjectModal.tsx
 import { type FormEvent, useEffect, useState } from 'react';
+import type { EditorSaveProjectOptions } from '../../../model/useEditorProjectSave';
 import './SaveProjectModal.css';
-
-export type SaveProjectOptions = {
-    saveAsTemplate: boolean;
-    isPublic: boolean;
-};
 
 type SaveProjectModalProps = {
     isOpen: boolean;
     isSaving: boolean;
-    initialOptions: SaveProjectOptions;
+    initialOptions: EditorSaveProjectOptions;
     onClose: () => void;
-    onSave: (options: SaveProjectOptions) => Promise<void>;
+    onSave: (options: EditorSaveProjectOptions) => Promise<void>;
 };
 
 export function SaveProjectModal({

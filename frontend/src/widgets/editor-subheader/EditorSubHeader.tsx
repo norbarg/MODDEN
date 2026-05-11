@@ -1,8 +1,8 @@
 // src/widgets/editor-subheader/EditorSubHeader.tsx
 import type { CSSProperties } from 'react';
 import type {
-    EditorOption,
     EditorScene,
+    EditorSceneObject,
 } from '../../features/editor/model/editorTypes';
 import { EditorColorPicker } from '../../features/editor/ui/color-picker';
 import './EditorSubHeader.css';
@@ -10,37 +10,38 @@ import './EditorSubHeader.css';
 import duplicateIcon from '../../assets/editor-subheader/duplicate.svg';
 import lockIcon from '../../assets/editor-subheader/lock.svg';
 import deleteIcon from '../../assets/editor-subheader/delete.svg';
+import lockClosedIcon from '../../assets/editor-subheader/lock-closed.svg';
 
 type EditorSubHeaderProps = {
     scene: EditorScene;
-    activeOption: EditorOption;
+    selectedObject: EditorSceneObject | null;
     recentCanvasColors: string[];
     onCanvasBackgroundChangeStart: () => void;
     onCanvasBackgroundPreview: (color: string) => void;
     onCanvasBackgroundCommit: (color: string) => void;
-};
-const OPTION_COLOR: Record<string, string> = {
-    pencil: '#5ed99a',
-    marker: '#ff7a59',
-    eraser: '#708d96',
-    rectangle: '#7aa5ff',
-    circle: '#7aa5ff',
-    line: '#7aa5ff',
-    heading: '#ff7a59',
-    paragraph: '#ff7a59',
-    image: '#f05c8d',
-    upload: '#c89cff',
+    onSelectedObjectColorChangeStart: () => void;
+    onSelectedObjectColorPreview: (color: string) => void;
+    onSelectedObjectColorCommit: (color: string) => void;
+    onSelectedObjectDuplicate: () => void;
+    onSelectedObjectLockToggle: () => void;
+    onSelectedObjectDelete: () => void;
 };
 
 export function EditorSubHeader({
     scene,
-    activeOption,
+    selectedObject,
     recentCanvasColors,
     onCanvasBackgroundChangeStart,
     onCanvasBackgroundPreview,
     onCanvasBackgroundCommit,
+    onSelectedObjectColorChangeStart,
+    onSelectedObjectColorPreview,
+    onSelectedObjectColorCommit,
+    onSelectedObjectDuplicate,
+    onSelectedObjectLockToggle,
+    onSelectedObjectDelete,
 }: EditorSubHeaderProps) {
-    if (!activeOption) {
+    if (!selectedObject) {
         return (
             <div
                 className="editor-subheader editor-subheader--canvas"
@@ -66,20 +67,49 @@ export function EditorSubHeader({
         );
     }
 
-    const currentColor = OPTION_COLOR[activeOption.id] ?? '#5ed99a';
+    const currentColor =
+        selectedObject.type === 'draw' ? selectedObject.color : '#5ed99a';
+
+    const isSelectedObjectLocked = Boolean(selectedObject.locked);
 
     return (
-        <div className="editor-subheader" aria-label="Context toolbar">
-            <button
-                className="editor-subheader__color"
-                type="button"
-                aria-label="Change color"
-                style={
-                    {
-                        '--current-color': currentColor,
-                    } as CSSProperties
-                }
-            />
+        <div
+            className="editor-subheader editor-subheader--object"
+            aria-label="Object toolbar"
+        >
+            {isSelectedObjectLocked ? (
+                <button
+                    className="editor-subheader__color editor-subheader__color--disabled"
+                    type="button"
+                    aria-label="Object color is locked"
+                    disabled
+                >
+                    <span
+                        style={
+                            {
+                                '--current-color': currentColor,
+                            } as CSSProperties
+                        }
+                    />
+                </button>
+            ) : (
+                <EditorColorPicker
+                    value={currentColor}
+                    recentColors={recentCanvasColors}
+                    triggerClassName="editor-subheader__color"
+                    onChangeStart={onSelectedObjectColorChangeStart}
+                    onPreview={onSelectedObjectColorPreview}
+                    onCommit={onSelectedObjectColorCommit}
+                >
+                    <span
+                        style={
+                            {
+                                '--current-color': currentColor,
+                            } as CSSProperties
+                        }
+                    />
+                </EditorColorPicker>
+            )}
 
             <span className="editor-subheader__divider" />
 
@@ -87,6 +117,7 @@ export function EditorSubHeader({
                 className="editor-subheader__button"
                 type="button"
                 aria-label="Duplicate"
+                onClick={onSelectedObjectDuplicate}
             >
                 <img src={duplicateIcon} alt="" aria-hidden="true" />
             </button>
@@ -96,15 +127,22 @@ export function EditorSubHeader({
             <button
                 className="editor-subheader__button"
                 type="button"
-                aria-label="Lock"
+                aria-label={isSelectedObjectLocked ? 'Unlock' : 'Lock'}
+                onClick={onSelectedObjectLockToggle}
             >
-                <img src={lockIcon} alt="" aria-hidden="true" />
+                <img
+                    src={isSelectedObjectLocked ? lockClosedIcon : lockIcon}
+                    alt=""
+                    aria-hidden="true"
+                />
             </button>
 
             <button
                 className="editor-subheader__button"
                 type="button"
                 aria-label="Delete"
+                onClick={onSelectedObjectDelete}
+                disabled={isSelectedObjectLocked}
             >
                 <img src={deleteIcon} alt="" aria-hidden="true" />
             </button>

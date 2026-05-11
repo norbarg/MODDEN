@@ -2,7 +2,12 @@
 import { useEffect, useRef } from 'react';
 import type { WorkspaceProject } from '../../../../shared/types/workspace';
 import type { EditorOption, EditorScene } from '../../model/editorTypes';
-import { DrawingLayer, useCanvasDrawing } from './drawing/EditorCanvasDrawing';
+import {
+    DrawingLayer,
+    useCanvasDrawing,
+} from '../panels/tools-panel/drawing/EditorCanvasDrawing';
+import { useCanvasObjectSelection } from './selection/useCanvasObjectSelection';
+import { useEditorCanvasZoom } from './zoom/useEditorCanvasZoom';
 import './EditorCanvas.css';
 
 type EditorCanvasProps = {
@@ -15,15 +20,9 @@ type EditorCanvasProps = {
     onCanvasSelect: () => void;
     onSceneCommit: (scene: EditorScene) => void;
     toolStrokeWidths: Record<string, number>;
+    selectedObjectId: string | null;
+    onObjectSelect: (objectId: string | null) => void;
 };
-
-const MIN_ZOOM = 20;
-const MAX_ZOOM = 200;
-const ZOOM_STEP = 10;
-
-function clampZoom(value: number) {
-    return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
-}
 
 export function EditorCanvas({
     project,
@@ -35,13 +34,18 @@ export function EditorCanvas({
     onCanvasSelect,
     onSceneCommit,
     toolStrokeWidths,
+    selectedObjectId,
+    onObjectSelect,
 }: EditorCanvasProps) {
     const canvasAreaRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef<HTMLDivElement | null>(null);
-    const latestZoomRef = useRef(zoom);
     const latestSceneRef = useRef(scene);
 
-    const canvasScale = zoom / 100;
+    const { canvasScale, handleZoomIn, handleZoomOut } = useEditorCanvasZoom({
+        zoom,
+        onZoomChange,
+        canvasAreaRef,
+    });
 
     const {
         activeDrawingTool,
@@ -60,57 +64,29 @@ export function EditorCanvas({
         onSceneCommit,
     });
 
-    useEffect(() => {
-        latestZoomRef.current = zoom;
-    }, [zoom]);
+    const {
+        visibleScene,
+        handleSelectionPointerDown,
+        handleSelectionPointerMove,
+        handleSelectionPointerUp,
+    } = useCanvasObjectSelection({
+        scene,
+        canvasScale,
+        canvasRef,
+        selectedObjectId,
+        getLatestScene: () => latestSceneRef.current,
+        onObjectSelect,
+        onSceneCommit,
+    });
 
     useEffect(() => {
         latestSceneRef.current = scene;
     }, [scene]);
 
-    useEffect(() => {
-        const canvasArea = canvasAreaRef.current;
-
-        if (!canvasArea) {
-            return;
-        }
-
-        const handleWheel = (event: WheelEvent) => {
-            if (!event.ctrlKey && !event.metaKey) {
-                return;
-            }
-
-            event.preventDefault();
-
-            const zoomDirection = event.deltaY < 0 ? 1 : -1;
-            const nextZoom = clampZoom(
-                latestZoomRef.current + zoomDirection * ZOOM_STEP,
-            );
-
-            onZoomChange(nextZoom);
-        };
-
-        canvasArea.addEventListener('wheel', handleWheel, {
-            passive: false,
-        });
-
-        return () => {
-            canvasArea.removeEventListener('wheel', handleWheel);
-        };
-    }, [onZoomChange]);
-
     const handleCanvasClick = () => {
         if (!activeDrawingTool) {
             onCanvasSelect();
         }
-    };
-
-    const handleZoomIn = () => {
-        onZoomChange(clampZoom(zoom + ZOOM_STEP));
-    };
-
-    const handleZoomOut = () => {
-        onZoomChange(clampZoom(zoom - ZOOM_STEP));
     };
 
     return (
@@ -124,10 +100,38 @@ export function EditorCanvas({
                     role="button"
                     tabIndex={0}
                     onClick={handleCanvasClick}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp}
+                    onPointerDown={(event) => {
+                        if (activeDrawingTool) {
+                            handlePointerDown(event);
+                            return;
+                        }
+
+                        handleSelectionPointerDown(event);
+                    }}
+                    onPointerMove={(event) => {
+                        if (activeDrawingTool) {
+                            handlePointerMove(event);
+                            return;
+                        }
+
+                        handleSelectionPointerMove(event);
+                    }}
+                    onPointerUp={(event) => {
+                        if (activeDrawingTool) {
+                            handlePointerUp(event);
+                            return;
+                        }
+
+                        handleSelectionPointerUp(event);
+                    }}
+                    onPointerCancel={(event) => {
+                        if (activeDrawingTool) {
+                            handlePointerUp(event);
+                            return;
+                        }
+
+                        handleSelectionPointerUp(event);
+                    }}
                     onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             onCanvasSelect();
@@ -141,7 +145,12 @@ export function EditorCanvas({
                     }}
                 >
                     <DrawingLayer
-                        objects={visibleObjects}
+                        objects={
+                            activeDrawingTool
+                                ? visibleObjects
+                                : visibleScene.objects
+                        }
+                        selectedObjectId={selectedObjectId}
                         canvasWidth={project.canvasWidth}
                         canvasHeight={project.canvasHeight}
                     />

@@ -51,8 +51,18 @@
     height: 19px;
     border: 0;
     border-radius: 999px;
-    background: var(--current-color);
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: transparent;
     cursor: pointer;
+}
+
+.editor-subheader__color span {
+    width: 19px;
+    height: 19px;
+    border-radius: 999px;
+    background: var(--current-color);
 }
 
 .editor-subheader__button {
@@ -78,6 +88,37 @@
     height: 22px;
     border-radius: 999px;
     background: #dde3e5;
+}
+.editor-subheader--object .editor-color-picker-popover {
+    top: 46px;
+    right: -155px;
+    background: #ffffff;
+}
+
+.editor-subheader--object .editor-color-picker-popover__hex-row {
+    background: #f2f4f5;
+}
+
+.editor-subheader--object .editor-color-picker-popover__hex-row input {
+    color: #2a284c;
+}
+
+.editor-subheader--object .editor-color-picker-popover__swatch--active {
+    outline-color: #dde3e5;
+}
+
+.editor-subheader__color--disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.editor-subheader__button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.editor-subheader__button:disabled img {
+    pointer-events: none;
 }
 
 @media (max-width: 900px) {

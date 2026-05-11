@@ -26,6 +26,7 @@ export type EditorDrawObject = {
     color: string;
     strokeWidth: number;
     opacity: number;
+    locked?: boolean;
 };
 
 export type EditorSceneObject = EditorDrawObject;

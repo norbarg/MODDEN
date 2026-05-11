@@ -35,10 +35,10 @@ export function CreateProjectModal({
         const isEditMode = mode === 'edit';
 
         return {
-            title: isEditMode ? 'Edit project' : 'Create custom template',
+            title: isEditMode ? 'Edit project' : 'Create project',
             description: isEditMode
                 ? 'Update project name and canvas size.'
-                : 'Set project name and canvas size.',
+                : 'Set project name and canvas size before opening the editor.',
             submit: isCreating
                 ? isEditMode
                     ? 'Saving...'

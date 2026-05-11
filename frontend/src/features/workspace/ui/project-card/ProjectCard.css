@@ -208,6 +208,7 @@
 }
 .project-card:hover {
     transform: translateY(-3px);
+    z-index: 19;
 }
 @media (max-width: 760px) {
     .project-card {

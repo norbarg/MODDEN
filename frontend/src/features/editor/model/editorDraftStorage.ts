@@ -1,12 +1,14 @@
 // src/features/editor/model/editorDraftStorage.ts
-import type { EditorScene } from './editorTypes';
+import type { EditorOption, EditorPanel, EditorScene } from './editorTypes';
 
 type EditorProjectDraft = {
     projectId: string;
     scene: EditorScene;
     pastScenes: EditorScene[];
     futureScenes: EditorScene[];
-    recentCanvasColors: string[];
+    recentColors: string[];
+    activePanel: EditorPanel;
+    activeOption: EditorOption;
     updatedAt: string;
 };
 
@@ -25,13 +27,28 @@ export const editorDraftStorage = {
         }
 
         try {
-            const draft = JSON.parse(rawDraft) as EditorProjectDraft;
+            const draft = JSON.parse(rawDraft) as EditorProjectDraft & {
+                recentCanvasColors?: string[];
+                recentToolColors?: string[];
+                activePanel?: EditorPanel;
+                activeOption?: EditorOption;
+            };
+
+            const recentColors =
+                draft.recentColors ??
+                draft.recentCanvasColors ??
+                draft.recentToolColors ??
+                [];
 
             return {
-                ...draft,
+                projectId: draft.projectId,
+                scene: draft.scene,
                 pastScenes: draft.pastScenes ?? [],
                 futureScenes: draft.futureScenes ?? [],
-                recentCanvasColors: draft.recentCanvasColors ?? [],
+                recentColors,
+                activePanel: draft.activePanel ?? null,
+                activeOption: draft.activeOption ?? null,
+                updatedAt: draft.updatedAt,
             };
         } catch {
             localStorage.removeItem(getDraftKey(projectId));
@@ -44,7 +61,9 @@ export const editorDraftStorage = {
         scene: EditorScene;
         pastScenes: EditorScene[];
         futureScenes: EditorScene[];
-        recentCanvasColors: string[];
+        recentColors: string[];
+        activePanel: EditorPanel;
+        activeOption: EditorOption;
     }) {
         const MAX_SAVED_HISTORY_ITEMS = 10;
 
@@ -53,7 +72,9 @@ export const editorDraftStorage = {
             scene: data.scene,
             pastScenes: data.pastScenes.slice(-MAX_SAVED_HISTORY_ITEMS),
             futureScenes: data.futureScenes.slice(-MAX_SAVED_HISTORY_ITEMS),
-            recentCanvasColors: data.recentCanvasColors,
+            recentColors: data.recentColors,
+            activePanel: data.activePanel,
+            activeOption: data.activeOption,
             updatedAt: new Date().toISOString(),
         };
 

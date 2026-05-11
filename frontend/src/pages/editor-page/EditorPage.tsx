@@ -5,13 +5,19 @@ import { projectsApi } from '../../shared/api/projectsApi';
 import { templatesApi } from '../../shared/api/templatesApi';
 import { ApiError } from '../../shared/api/apiClient';
 import { authStorage } from '../../shared/auth/authStorage';
-import { ROUTES } from '../../shared/routes/routes';
-import { useEditorHistory } from '../../features/editor/model/useEditorHistory';
 import type {
     WorkspaceProject,
     WorkspaceTemplate,
 } from '../../shared/types/workspace';
+import { ROUTES } from '../../shared/routes/routes';
+
+import {
+    CreateProjectModal,
+    type CreateProjectFormValues,
+} from '../../features/workspace/ui/create-project-modal';
+
 import { EditorLayout } from '../../layouts/editor-layout/EditorLayout';
+
 import {
     DEFAULT_EDITOR_SCENE,
     normalizeEditorScene,
@@ -21,16 +27,21 @@ import type {
     EditorPanel,
     EditorScene,
 } from '../../features/editor/model/editorTypes';
-import {
-    CreateProjectModal,
-    type CreateProjectFormValues,
-} from '../../features/workspace/ui/create-project-modal';
+import { useEditorProjectSave } from '../../features/editor/model/useEditorProjectSave';
+
+import { useEditorHistory } from '../../features/editor/model/useEditorHistory';
+import { editorDraftStorage } from '../../features/editor/model/editorDraftStorage';
+
 import {
     SaveProjectModal,
     type SaveProjectOptions,
 } from '../../features/editor/ui/modals/save-project-modal';
 import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-changes-modal';
-import { editorDraftStorage } from '../../features/editor/model/editorDraftStorage';
+import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
+import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
+import { toggleEditorObjectLock } from '../../features/editor/ui/lock/toggleEditorObjectLock';
+import { deleteEditorObject } from '../../features/editor/ui/delete/deleteEditorObject';
+
 import './EditorPage.css';
 
 export function EditorPage() {
@@ -42,30 +53,57 @@ export function EditorPage() {
     const [activePanel, setActivePanel] = useState<EditorPanel>(null);
     const [activeOption, setActiveOption] = useState<EditorOption>(null);
 
-    const [recentCanvasColors, setRecentCanvasColors] = useState<string[]>([
-        '#ffffff',
-        '#5ed99a',
-        '#ff4b0b',
-        '#ff5b8a',
-        '#9fbd5c',
-        '#1767c7',
-    ]);
+    const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
+        null,
+    );
 
+    const updateSelectedObjectColor = (color: string): EditorScene => {
+        if (!selectedObjectId) {
+            return scene;
+        }
+
+        return {
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (object.id !== selectedObjectId) {
+                    return object;
+                }
+
+                if (object.type !== 'draw') {
+                    return object;
+                }
+
+                if (object.locked) {
+                    return object;
+                }
+
+                return {
+                    ...object,
+                    color,
+                };
+            }),
+        };
+    };
+
+    const handleSelectedObjectColorChangeStart = () => {
+        startSceneTransaction();
+    };
+
+    const handleSelectedObjectColorPreview = (color: string) => {
+        previewScene(updateSelectedObjectColor(color));
+    };
+
+    const handleSelectedObjectColorCommit = (color: string) => {
+        previewScene(updateSelectedObjectColor(color));
+        commitSceneTransaction();
+        addRecentColor(color);
+    };
     const [toolColors, setToolColors] = useState<Record<string, string>>({
         pencil: '#98BA61',
         marker: '#F8A1C4',
         highliter: '#48D8FE',
         eraser: '#FE5F96',
     });
-
-    const [recentToolColors, setRecentToolColors] = useState<string[]>([
-        '#98BA61',
-        '#F8A1C4',
-        '#48D8FE',
-        '#FE5F96',
-        '#1767c7',
-        '#ff4b0b',
-    ]);
 
     const [toolStrokeWidths, setToolStrokeWidths] = useState<
         Record<string, number>
@@ -80,7 +118,6 @@ export function EditorPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const [isMetaDirty, setIsMetaDirty] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -104,6 +141,9 @@ export function EditorPage() {
 
     const isRestoringDraftRef = useRef(false);
 
+    const { recentColors, addRecentColor, restoreRecentColors } =
+        useRecentColors();
+
     const {
         scene,
         pastScenes,
@@ -126,6 +166,33 @@ export function EditorPage() {
             isEditModalOpen || isSaveModalOpen || isUnsavedModalOpen,
     });
 
+    const { isSaving, saveProject } = useEditorProjectSave({
+        project,
+        linkedTemplate,
+        scene,
+        onProjectSaved: (updatedProject) => {
+            setProject(updatedProject);
+            setIsMetaDirty(false);
+        },
+        onTemplateSaved: (template) => {
+            setLinkedTemplate(template);
+
+            setSaveProjectOptions({
+                saveAsTemplate: Boolean(template),
+                isPublic: template?.isPublic ?? false,
+            });
+        },
+        onSceneSaved: markSceneAsSaved,
+        onSaveModalClose: () => {
+            setIsSaveModalOpen(false);
+
+            if (shouldLeaveAfterSave) {
+                setShouldLeaveAfterSave(false);
+                navigate(ROUTES.PROJECTS);
+            }
+        },
+    });
+
     const isDirty = isSceneDirty || isMetaDirty;
 
     useEffect(() => {
@@ -142,16 +209,11 @@ export function EditorPage() {
             scene,
             pastScenes,
             futureScenes,
-            recentCanvasColors,
+            recentColors,
+            activePanel,
+            activeOption,
         });
-    }, [
-        project,
-        scene,
-        pastScenes,
-        futureScenes,
-        recentCanvasColors,
-        isSceneDirty,
-    ]);
+    }, [project, scene, pastScenes, futureScenes, recentColors, isSceneDirty]);
 
     useEffect(() => {
         if (!projectId) {
@@ -186,6 +248,7 @@ export function EditorPage() {
                 const draft = editorDraftStorage.get(loadedProject.id);
 
                 setProject(loadedProject);
+                setLinkedTemplate(existingTemplate);
 
                 isRestoringDraftRef.current = true;
 
@@ -198,15 +261,17 @@ export function EditorPage() {
                         futureScenes: draft.futureScenes,
                     });
 
-                    if (draft.recentCanvasColors.length > 0) {
-                        setRecentCanvasColors(draft.recentCanvasColors);
+                    setActivePanel(draft.activePanel);
+                    setActiveOption(draft.activeOption);
+
+                    if (draft.recentColors.length > 0) {
+                        restoreRecentColors(draft.recentColors);
                     }
                 }
 
                 queueMicrotask(() => {
                     isRestoringDraftRef.current = false;
                 });
-                setLinkedTemplate(existingTemplate);
 
                 setSaveProjectOptions({
                     saveAsTemplate: Boolean(existingTemplate),
@@ -240,6 +305,58 @@ export function EditorPage() {
         };
     }, [navigate, projectId, resetScene, restoreDraftHistory]);
 
+    const handleSelectedObjectDelete = () => {
+        if (!selectedObjectId) {
+            return;
+        }
+
+        const result = deleteEditorObject(scene, selectedObjectId);
+
+        if (!result.deleted) {
+            return;
+        }
+
+        applySceneChange(result.scene);
+        setSelectedObjectId(null);
+    };
+
+    const handleSelectedObjectLockToggle = () => {
+        if (!selectedObjectId) {
+            return;
+        }
+
+        const result = toggleEditorObjectLock(scene, selectedObjectId);
+
+        if (!result.updatedObject) {
+            return;
+        }
+
+        applySceneChange(result.scene);
+    };
+
+    const handleSelectedObjectDuplicate = () => {
+        if (!selectedObjectId) {
+            return;
+        }
+
+        const result = duplicateEditorObject(scene, selectedObjectId);
+
+        if (!result.duplicatedObject) {
+            return;
+        }
+
+        applySceneChange(result.scene);
+        setSelectedObjectId(result.duplicatedObject.id);
+    };
+
+    const handleOptionChange = (option: EditorOption) => {
+        setActiveOption(option);
+
+        if (option?.panel === 'tools' && option.id !== 'cursor') {
+            setSelectedObjectId(null);
+        }
+    };
+
     const handleToolColorPreview = (toolId: string, color: string) => {
         setToolColors((prev) => ({
             ...prev,
@@ -253,17 +370,7 @@ export function EditorPage() {
             [toolId]: color,
         }));
 
-        setRecentToolColors((prev) => {
-            const nextColors = [
-                color,
-                ...prev.filter(
-                    (recentColor) =>
-                        recentColor.toLowerCase() !== color.toLowerCase(),
-                ),
-            ];
-
-            return nextColors.slice(0, 8);
-        });
+        addRecentColor(color);
     };
 
     const handleToolStrokeWidthChange = (
@@ -298,78 +405,7 @@ export function EditorPage() {
     const handleCanvasBackgroundCommit = (color: string) => {
         commitSceneTransaction();
 
-        setRecentCanvasColors((currentColors) => {
-            const normalizedColor = color.toLowerCase();
-
-            return [
-                normalizedColor,
-                ...currentColors.filter(
-                    (item) => item.toLowerCase() !== normalizedColor,
-                ),
-            ].slice(0, 6);
-        });
-    };
-
-    const handleSaveProject = async (options: SaveProjectOptions) => {
-        if (!project) {
-            return;
-        }
-
-        setIsSaving(true);
-
-        try {
-            const updatedProject = await projectsApi.updateProject(project.id, {
-                sceneJson: scene,
-            });
-
-            setProject(updatedProject);
-
-            if (options.saveAsTemplate) {
-                const templatePayload = {
-                    title: updatedProject.title,
-                    category: updatedProject.category,
-                    canvasWidth: updatedProject.canvasWidth,
-                    canvasHeight: updatedProject.canvasHeight,
-                    sceneJson: scene,
-                    thumbnailUrl: updatedProject.thumbnailUrl ?? null,
-                    isPublic: options.isPublic,
-                };
-
-                if (linkedTemplate) {
-                    const updatedTemplate = await templatesApi.updateTemplate(
-                        linkedTemplate.id,
-                        templatePayload,
-                    );
-
-                    setLinkedTemplate(updatedTemplate);
-                } else {
-                    const createdTemplate = await templatesApi.createTemplate({
-                        sourceProjectId: updatedProject.id,
-                        ...templatePayload,
-                    });
-
-                    setLinkedTemplate(createdTemplate);
-                }
-            } else if (linkedTemplate) {
-                await templatesApi.deleteTemplate(linkedTemplate.id);
-                setLinkedTemplate(null);
-            }
-
-            setSaveProjectOptions(options);
-            markSceneAsSaved(scene);
-            setIsMetaDirty(false);
-            setIsSaveModalOpen(false);
-            editorDraftStorage.remove(project.id);
-
-            if (shouldLeaveAfterSave) {
-                navigate(ROUTES.PROJECTS);
-            }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsSaving(false);
-            setShouldLeaveAfterSave(false);
-        }
+        addRecentColor(color);
     };
 
     const handleBack = () => {
@@ -434,10 +470,10 @@ export function EditorPage() {
                 scene={scene}
                 activePanel={activePanel}
                 activeOption={activeOption}
-                recentCanvasColors={recentCanvasColors}
+                selectedObjectId={selectedObjectId}
+                recentColors={recentColors}
                 toolColors={toolColors}
                 toolStrokeWidths={toolStrokeWidths}
-                recentToolColors={recentToolColors}
                 zoom={zoom}
                 isDirty={isDirty}
                 isSaving={isSaving}
@@ -446,11 +482,17 @@ export function EditorPage() {
                 onUndo={undo}
                 onRedo={redo}
                 onPanelChange={handlePanelChange}
-                onOptionChange={setActiveOption}
+                onOptionChange={handleOptionChange}
+                onObjectSelect={setSelectedObjectId}
                 onSceneCommit={(nextScene) => applySceneChange(nextScene)}
                 onToolColorPreview={handleToolColorPreview}
                 onToolColorCommit={handleToolColorCommit}
                 onToolStrokeWidthChange={handleToolStrokeWidthChange}
+                onSelectedObjectColorChangeStart={
+                    handleSelectedObjectColorChangeStart
+                }
+                onSelectedObjectColorPreview={handleSelectedObjectColorPreview}
+                onSelectedObjectColorCommit={handleSelectedObjectColorCommit}
                 onCanvasBackgroundChangeStart={
                     handleCanvasBackgroundChangeStart
                 }
@@ -460,6 +502,9 @@ export function EditorPage() {
                 onOpenProjectSettings={() => setIsEditModalOpen(true)}
                 onOpenSaveProject={() => setIsSaveModalOpen(true)}
                 onBack={handleBack}
+                onSelectedObjectDuplicate={handleSelectedObjectDuplicate}
+                onSelectedObjectLockToggle={handleSelectedObjectLockToggle}
+                onSelectedObjectDelete={handleSelectedObjectDelete}
             />
 
             <CreateProjectModal
@@ -480,10 +525,10 @@ export function EditorPage() {
                 isSaving={isSaving}
                 initialOptions={saveProjectOptions}
                 onClose={() => {
-                    setIsSaveModalOpen(false);
                     setShouldLeaveAfterSave(false);
+                    setIsSaveModalOpen(false);
                 }}
-                onSave={handleSaveProject}
+                onSave={saveProject}
             />
 
             <UnsavedChangesModal

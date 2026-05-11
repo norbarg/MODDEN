@@ -1,4 +1,4 @@
-// src/features/editor/ui/canvas/drawing/EditorCanvasDrawing.tsx
+// src/features/editor/ui/panels/tools-panel/drawing/EditorCanvasDrawing.tsx
 import { useMemo, useState } from 'react';
 import type {
     EditorDrawObject,
@@ -6,7 +6,7 @@ import type {
     EditorOption,
     EditorScene,
     EditorSceneObject,
-} from '../../../model/editorTypes';
+} from '../../../../model/editorTypes';
 
 const DRAWING_TOOLS: EditorDrawingTool[] = [
     'pencil',
@@ -46,6 +46,9 @@ const TOOL_SETTINGS: Record<
 };
 
 const MIN_POINT_DISTANCE = 3;
+
+const ERASER_HIT_SCALE = 0.55;
+const MIN_ERASE_DISTANCE = 2;
 
 function getDistance(
     firstPoint: EditorDrawObject['points'][number],
@@ -89,6 +92,130 @@ function pointsToPath(points: EditorDrawObject['points']) {
         `M ${firstPoint.x} ${firstPoint.y}`,
         ...restPoints.map((point) => `L ${point.x} ${point.y}`),
     ].join(' ');
+}
+
+function getDistanceToSegment(
+    point: EditorDrawObject['points'][number],
+    segmentStart: EditorDrawObject['points'][number],
+    segmentEnd: EditorDrawObject['points'][number],
+) {
+    const dx = segmentEnd.x - segmentStart.x;
+    const dy = segmentEnd.y - segmentStart.y;
+
+    if (dx === 0 && dy === 0) {
+        return Math.hypot(point.x - segmentStart.x, point.y - segmentStart.y);
+    }
+
+    const t = Math.max(
+        0,
+        Math.min(
+            1,
+            ((point.x - segmentStart.x) * dx +
+                (point.y - segmentStart.y) * dy) /
+                (dx * dx + dy * dy),
+        ),
+    );
+
+    const closestPoint = {
+        x: segmentStart.x + t * dx,
+        y: segmentStart.y + t * dy,
+    };
+
+    return Math.hypot(point.x - closestPoint.x, point.y - closestPoint.y);
+}
+
+function isPointNearPolyline(
+    point: EditorDrawObject['points'][number],
+    polyline: EditorDrawObject['points'],
+    distance: number,
+) {
+    if (polyline.length < 2) {
+        return false;
+    }
+
+    for (let index = 0; index < polyline.length - 1; index += 1) {
+        const currentDistance = getDistanceToSegment(
+            point,
+            polyline[index],
+            polyline[index + 1],
+        );
+
+        if (currentDistance <= distance) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function splitDrawObjectByEraser(
+    object: EditorDrawObject,
+    eraserObject: EditorDrawObject,
+): EditorDrawObject[] {
+    const eraseDistance = Math.max(
+        MIN_ERASE_DISTANCE,
+        eraserObject.strokeWidth * ERASER_HIT_SCALE,
+    );
+
+    const segments: EditorDrawObject[] = [];
+    let currentPoints: EditorDrawObject['points'] = [];
+
+    object.points.forEach((point) => {
+        const shouldErasePoint = isPointNearPolyline(
+            point,
+            eraserObject.points,
+            eraseDistance,
+        );
+
+        if (shouldErasePoint) {
+            if (currentPoints.length > 1) {
+                segments.push({
+                    ...object,
+                    id: createDrawObjectId(),
+                    points: currentPoints,
+                });
+            }
+
+            currentPoints = [];
+            return;
+        }
+
+        currentPoints.push(point);
+    });
+
+    if (currentPoints.length > 1) {
+        segments.push({
+            ...object,
+            id: createDrawObjectId(),
+            points: currentPoints,
+        });
+    }
+
+    return segments;
+}
+
+function eraseSceneObjects(
+    scene: EditorScene,
+    eraserObject: EditorDrawObject,
+): EditorScene {
+    return {
+        ...scene,
+        objects: scene.objects.flatMap((object) => {
+            if (object.type !== 'draw') {
+                return [object];
+            }
+
+            if (object.tool === 'eraser') {
+                return [object];
+            }
+
+            if (object.locked) {
+                return [object];
+            }
+
+            return splitDrawObjectByEraser(object, eraserObject);
+        }),
+    };
 }
 
 type UseCanvasDrawingParams = {
@@ -218,10 +345,14 @@ export function useCanvasDrawing({
         if (draftDrawObject.points.length > 1) {
             const latestScene = getLatestScene();
 
-            onSceneCommit({
-                ...latestScene,
-                objects: [...latestScene.objects, draftDrawObject],
-            });
+            if (draftDrawObject.tool === 'eraser') {
+                onSceneCommit(eraseSceneObjects(latestScene, draftDrawObject));
+            } else {
+                onSceneCommit({
+                    ...latestScene,
+                    objects: [...latestScene.objects, draftDrawObject],
+                });
+            }
         }
 
         setDraftDrawObject(null);
@@ -240,10 +371,12 @@ type DrawingLayerProps = {
     objects: EditorSceneObject[];
     canvasWidth: number;
     canvasHeight: number;
+    selectedObjectId: string | null;
 };
 
 export function DrawingLayer({
     objects,
+    selectedObjectId,
     canvasWidth,
     canvasHeight,
 }: DrawingLayerProps) {
@@ -309,10 +442,16 @@ export function DrawingLayer({
                         <mask
                             key={`mask-${object.id}`}
                             id={`erase-mask-${object.id}`}
+                            maskUnits="userSpaceOnUse"
+                            maskContentUnits="userSpaceOnUse"
+                            x={0}
+                            y={0}
+                            width={canvasWidth}
+                            height={canvasHeight}
                         >
                             <rect
-                                x="0"
-                                y="0"
+                                x={0}
+                                y={0}
                                 width={canvasWidth}
                                 height={canvasHeight}
                                 fill="white"
@@ -349,6 +488,7 @@ export function DrawingLayer({
                 }
 
                 const path = pointsToPath(object.points);
+                const isSelected = object.id === selectedObjectId;
 
                 const hasFutureErasers = objects
                     .slice(objectIndex + 1)
@@ -367,6 +507,18 @@ export function DrawingLayer({
                 if (object.tool === 'pencil') {
                     return (
                         <g key={object.id} {...maskProps}>
+                            {isSelected && (
+                                <path
+                                    d={path}
+                                    fill="none"
+                                    stroke="#4A90E2"
+                                    strokeWidth={object.strokeWidth + 8}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    opacity="0.25"
+                                />
+                            )}
+
                             <path
                                 d={path}
                                 fill="none"
@@ -403,17 +555,29 @@ export function DrawingLayer({
                 }
 
                 return (
-                    <path
-                        key={object.id}
-                        d={path}
-                        fill="none"
-                        stroke={object.color}
-                        strokeWidth={object.strokeWidth}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity={object.opacity}
-                        {...maskProps}
-                    />
+                    <g key={object.id} {...maskProps}>
+                        {isSelected && (
+                            <path
+                                d={path}
+                                fill="none"
+                                stroke="#4A90E2"
+                                strokeWidth={object.strokeWidth + 8}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                opacity="0.25"
+                            />
+                        )}
+
+                        <path
+                            d={path}
+                            fill="none"
+                            stroke={object.color}
+                            strokeWidth={object.strokeWidth}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            opacity={object.opacity}
+                        />
+                    </g>
                 );
             })}
         </svg>

@@ -17,8 +17,9 @@ type EditorLayoutProps = {
     scene: EditorScene;
     activePanel: EditorPanel;
     activeOption: EditorOption;
-    recentCanvasColors: string[];
+    recentColors: string[];
     toolColors: Record<string, string>;
+    toolStrokeWidths: Record<string, number>;
     zoom: number;
     isDirty: boolean;
     isSaving: boolean;
@@ -29,6 +30,9 @@ type EditorLayoutProps = {
     onPanelChange: (panel: EditorPanel) => void;
     onOptionChange: (option: EditorOption) => void;
     onSceneCommit: (scene: EditorScene) => void;
+    onToolColorPreview: (toolId: string, color: string) => void;
+    onToolColorCommit: (toolId: string, color: string) => void;
+    onToolStrokeWidthChange: (toolId: string, strokeWidth: number) => void;
     onCanvasBackgroundChangeStart: () => void;
     onCanvasBackgroundPreview: (color: string) => void;
     onCanvasBackgroundCommit: (color: string) => void;
@@ -36,11 +40,14 @@ type EditorLayoutProps = {
     onOpenProjectSettings: () => void;
     onOpenSaveProject: () => void;
     onBack: () => void;
-    toolStrokeWidths: Record<string, number>;
-    recentToolColors: string[];
-    onToolColorPreview: (toolId: string, color: string) => void;
-    onToolColorCommit: (toolId: string, color: string) => void;
-    onToolStrokeWidthChange: (toolId: string, strokeWidth: number) => void;
+    selectedObjectId: string | null;
+    onObjectSelect: (objectId: string | null) => void;
+    onSelectedObjectColorChangeStart: () => void;
+    onSelectedObjectColorPreview: (color: string) => void;
+    onSelectedObjectColorCommit: (color: string) => void;
+    onSelectedObjectDuplicate: () => void;
+    onSelectedObjectLockToggle: () => void;
+    onSelectedObjectDelete: () => void;
 };
 
 export function EditorLayout({
@@ -48,8 +55,9 @@ export function EditorLayout({
     scene,
     activePanel,
     activeOption,
-    recentCanvasColors,
+    recentColors,
     toolColors,
+    toolStrokeWidths,
     zoom,
     isDirty,
     isSaving,
@@ -60,6 +68,9 @@ export function EditorLayout({
     onPanelChange,
     onOptionChange,
     onSceneCommit,
+    onToolColorPreview,
+    onToolColorCommit,
+    onToolStrokeWidthChange,
     onCanvasBackgroundChangeStart,
     onCanvasBackgroundPreview,
     onCanvasBackgroundCommit,
@@ -67,12 +78,17 @@ export function EditorLayout({
     onOpenProjectSettings,
     onOpenSaveProject,
     onBack,
-    toolStrokeWidths,
-    recentToolColors,
-    onToolColorPreview,
-    onToolColorCommit,
-    onToolStrokeWidthChange,
+    selectedObjectId,
+    onObjectSelect,
+    onSelectedObjectColorChangeStart,
+    onSelectedObjectColorPreview,
+    onSelectedObjectColorCommit,
+    onSelectedObjectDuplicate,
+    onSelectedObjectLockToggle,
+    onSelectedObjectDelete,
 }: EditorLayoutProps) {
+    const selectedObject =
+        scene.objects.find((object) => object.id === selectedObjectId) ?? null;
     return (
         <main className="editor-layout">
             <EditorSidebar
@@ -100,7 +116,7 @@ export function EditorLayout({
                         activeOption={activeOption}
                         toolColors={toolColors}
                         toolStrokeWidths={toolStrokeWidths}
-                        recentToolColors={recentToolColors}
+                        recentToolColors={recentColors}
                         onOptionChange={onOptionChange}
                         onToolColorPreview={onToolColorPreview}
                         onToolColorCommit={onToolColorCommit}
@@ -110,8 +126,8 @@ export function EditorLayout({
                     <div className="editor-layout__canvas-wrap">
                         <EditorSubHeader
                             scene={scene}
-                            activeOption={activeOption}
-                            recentCanvasColors={recentCanvasColors}
+                            selectedObject={selectedObject}
+                            recentCanvasColors={recentColors}
                             onCanvasBackgroundChangeStart={
                                 onCanvasBackgroundChangeStart
                             }
@@ -119,6 +135,22 @@ export function EditorLayout({
                                 onCanvasBackgroundPreview
                             }
                             onCanvasBackgroundCommit={onCanvasBackgroundCommit}
+                            onSelectedObjectColorChangeStart={
+                                onSelectedObjectColorChangeStart
+                            }
+                            onSelectedObjectColorPreview={
+                                onSelectedObjectColorPreview
+                            }
+                            onSelectedObjectColorCommit={
+                                onSelectedObjectColorCommit
+                            }
+                            onSelectedObjectDuplicate={
+                                onSelectedObjectDuplicate
+                            }
+                            onSelectedObjectLockToggle={
+                                onSelectedObjectLockToggle
+                            }
+                            onSelectedObjectDelete={onSelectedObjectDelete}
                         />
 
                         <EditorCanvas
@@ -131,6 +163,8 @@ export function EditorLayout({
                             onZoomChange={onZoomChange}
                             onCanvasSelect={() => onOptionChange(null)}
                             onSceneCommit={onSceneCommit}
+                            selectedObjectId={selectedObjectId}
+                            onObjectSelect={onObjectSelect}
                         />
                     </div>
                 </div>
