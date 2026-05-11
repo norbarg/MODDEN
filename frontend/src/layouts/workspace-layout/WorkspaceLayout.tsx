@@ -1,4 +1,4 @@
-//src/layouts/workspace-layout/WorkspaceLayout.tsx
+//layouts/workspace-layout/WorkspaceLayout.tsx
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { WorkspaceSidebar } from '../../widgets/workspace-sidebar/WorkspaceSidebar';
@@ -85,7 +85,7 @@ export function WorkspaceLayout() {
             <WorkspaceSidebar />
 
             <section className="workspace-layout__content">
-                <Outlet context={{ user }} />
+                <Outlet context={{ user, setUser }} />
             </section>
         </main>
     );

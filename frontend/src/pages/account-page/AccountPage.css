@@ -1,0 +1,331 @@
+/* src/pages/account-page/AccountPage.css */
+.account-page {
+    width: min(calc(100% - var(--workspace-sidebar-width) - 92px), 1190px);
+    margin: -30px auto 0;
+    margin-left: max(
+        calc(var(--workspace-sidebar-width) + 58px),
+        calc(
+            var(--workspace-sidebar-width) +
+                ((100vw - var(--workspace-sidebar-width) - 1190px) / 2)
+        )
+    );
+    padding: 52px 0 90px;
+    position: relative;
+    z-index: 6;
+}
+
+.account-hero p {
+    max-width: 520px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 18px;
+    line-height: 1.55;
+    margin: 0 38px;
+}
+
+.account-field-head span {
+    color: #708D96;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.account-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 80px;
+    align-items: center;
+}
+
+.account-main {
+    max-width: 520px;
+    display: grid;
+    gap: 34px;
+}
+
+.account-field {
+    display: grid;
+    gap: 12px;
+}
+
+.account-field > span {
+    color: #708D96;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.account-input-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.account-input-row input {
+    width: 270px;
+    height: 48px;
+    padding: 0 20px;
+    border: 1px solid #DDE3E5;
+    border-radius: 10px;
+    outline: none;
+    background: #f8f8f7;
+    color: #070707;
+    font-size: 14px;
+    font-weight: 500;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.account-input-row input:focus {
+    border-color: #FF3D00;
+    box-shadow: 0 0 0 4px rgba(255, 63, 18, 0.12);
+}
+
+.account-save-btn {
+    height: 38px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 16px;
+    background: #FF3D00;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.account-save-btn:hover {
+    transform: translateY(-1px);
+}
+
+.account-save-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.account-email {
+    margin: 0;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.account-notice {
+    position: fixed;
+    top: 26px;
+    right: 34px;
+    z-index: 50;
+    min-width: 210px;
+    max-width: 320px;
+    min-height: 44px;
+    padding: 10px 12px 10px 14px;
+    border: 1px solid #DDE3E5;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 34px rgba(20, 20, 20, 0.12);
+    color: #000000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: accountNoticeIn 0.25s ease;
+}
+
+.account-notice__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.account-notice--success .account-notice__dot {
+    background: #2F7D51;
+}
+
+.account-notice--error .account-notice__dot {
+    background: #FF3D00;
+}
+
+.account-notice span:last-of-type {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.account-notice button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: #f1f1f1;
+    color: #708D96;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.account-notice button:hover {
+    background: #FF3D00;
+    color: #ffffff;
+}
+
+.account-created {
+    width: fit-content;
+    margin-top: 2px;
+    padding: 7px 11px;
+    border: 1px solid #DDE3E5;
+    border-radius: 999px;
+    background: #f8f8f7;
+    color: #708D96;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.account-created strong {
+    color: #000000;
+    font-weight: 500;
+}
+
+.account-delete-confirm {
+    width: fit-content;
+    margin-top: 12px;
+    padding: 10px 10px 10px 14px;
+    border: 1px solid rgba(255, 61, 0, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 61, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.account-delete-confirm span {
+    color: #000000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.account-delete-confirm div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-cancel-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 16px;
+    background: #f1f1f1;
+    color: #708D96;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.account-cancel-btn:hover {
+    transform: translateY(-1px);
+}
+
+.account-cancel-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+@keyframes accountNoticeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.account-logout {
+    max-width: 330px;
+}
+
+.account-logout h3,
+.account-delete h3 {
+    margin: 0 0 10px;
+    color: #000000;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.account-logout p,
+.account-delete p {
+    margin: 0;
+    color: #708D96;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.account-logout-btn {
+    min-width: 60px;
+    height: 38px;
+    margin-top: 10px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 16px;
+    background: #f1f1f1;
+    color: #708D96;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.account-logout-btn:hover {
+    transform: translateY(-1px);
+}
+
+.account-divider {
+    width: 100%;
+    height: 2px;
+    margin: 36px 0;
+    background: #DDE3E5;
+}
+
+.account-delete {
+    max-width: 650px;
+}
+
+.account-delete-btn {
+    min-width: 60px;
+    height: 38px;
+    margin-top: 10px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 16px;
+    background: #FF3D00;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.account-delete-btn:hover {
+    transform: translateY(-1px);
+}
+
+.account-logout-btn:disabled,
+.account-delete-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}

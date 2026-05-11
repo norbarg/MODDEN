@@ -1,11 +1,12 @@
 // src/pages/register-page/RegisterPage.tsx
 import { type FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../shared/api/authApi';
 import { ROUTES } from '../../shared/routes/routes';
+import { authStorage } from '../../shared/auth/authStorage';
+import { GoogleAuthButton } from '../../shared/ui/google-auth-button/GoogleAuthButton';
 import logoWhite from '../../assets/modden-logo-white.svg';
 import logoOrange from '../../assets/modden-logo-orange.svg';
-import googleLogo from '../../assets/google-logo.svg';
 import authBg from '../../assets/auth-bg-register.svg';
 import './RegisterPage.css';
 
@@ -24,11 +25,40 @@ export function RegisterPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [googleMessage, setGoogleMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const clearMessages = () => {
     setError('');
     setGoogleMessage('');
   };
+
+  const saveAuthResponse = (
+    response: Awaited<ReturnType<typeof authApi.googleLogin>>,
+) => {
+    authStorage.setAccessToken(response.accessToken);
+    authStorage.setRefreshToken(response.refreshToken);
+    authStorage.setUser(response.user);
+};
+
+const handleGoogleSuccess = async (credential: string) => {
+    try {
+        setIsLoading(true);
+        setError('');
+        setSuccessMessage('');
+        setGoogleMessage('');
+
+        const response = await authApi.googleLogin(credential);
+
+        saveAuthResponse(response);
+        navigate(ROUTES.HOME);
+    } catch (err) {
+        setError(
+            err instanceof Error ? err.message : 'Google registration failed.',
+        );
+    } finally {
+        setIsLoading(false);
+    }
+};
 
   const validateForm = () => {
     if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -85,10 +115,6 @@ export function RegisterPage() {
     }
 
     await handleInitialRegister();
-  };
-
-  const handleGoogleStub = () => {
-    setGoogleMessage('Google authentication will be added later.');
   };
 
   return (
@@ -181,10 +207,15 @@ export function RegisterPage() {
           <span />
         </div>
 
-        <button className="google-button" type="button" onClick={handleGoogleStub}>
-          <img src={googleLogo} alt="" />
-          Continue with Google
-        </button>
+        <GoogleAuthButton
+    isLoading={isLoading}
+    onSuccess={(credential) => {
+        void handleGoogleSuccess(credential);
+    }}
+    onError={() => {
+        setError('Google registration failed.');
+    }}
+/>
 
         {googleMessage && <p className="auth-message auth-message--info">{googleMessage}</p>}
       </section>
