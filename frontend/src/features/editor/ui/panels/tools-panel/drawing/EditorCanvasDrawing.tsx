@@ -200,21 +200,23 @@ function eraseSceneObjects(
 ): EditorScene {
     return {
         ...scene,
-        objects: scene.objects.flatMap((object) => {
-            if (object.type !== 'draw') {
-                return [object];
-            }
+        objects: scene.objects.flatMap<EditorSceneObject>(
+            (object): EditorSceneObject[] => {
+                if (object.type !== 'draw') {
+                    return [object];
+                }
 
-            if (object.tool === 'eraser') {
-                return [object];
-            }
+                if (object.tool === 'eraser') {
+                    return [object];
+                }
 
-            if (object.locked) {
-                return [object];
-            }
+                if (object.locked) {
+                    return [object];
+                }
 
-            return splitDrawObjectByEraser(object, eraserObject);
-        }),
+                return splitDrawObjectByEraser(object, eraserObject);
+            },
+        ),
     };
 }
 
@@ -250,9 +252,9 @@ export function useCanvasDrawing({
         return null;
     }, [activeOption]);
 
-    const visibleObjects = draftDrawObject
-        ? [...scene.objects, draftDrawObject]
-        : scene.objects;
+    const visibleObjects: EditorSceneObject[] = draftDrawObject
+    ? [...scene.objects, draftDrawObject]
+    : scene.objects;
 
     const getCanvasPoint = (event: React.PointerEvent<HTMLDivElement>) => {
         const canvas = canvasRef.current;
@@ -374,6 +376,129 @@ type DrawingLayerProps = {
     selectedObjectId: string | null;
 };
 
+function getShapePoints(
+    shapeType: string,
+    width: number,
+    height: number,
+): string | null {
+    if (shapeType === 'triangle') {
+        return `${width / 2},0 ${width},${height} 0,${height}`;
+    }
+
+    if (shapeType === 'diamond') {
+        return `${width / 2},0 ${width},${height / 2} ${width / 2},${height} 0,${height / 2}`;
+    }
+
+    if (shapeType === 'pentagon') {
+        return `${width / 2},0 ${width},${height * 0.36} ${width * 0.82},${height} ${width * 0.18},${height} 0,${height * 0.36}`;
+    }
+
+    return null;
+}
+
+function ShapeSvgObject({
+    object,
+    isSelected,
+}: {
+    object: Extract<EditorSceneObject, { type: 'shape' }>;
+    isSelected: boolean;
+}) {
+    const centerX = object.x + object.width / 2;
+    const centerY = object.y + object.height / 2;
+    const shapePoints = getShapePoints(
+        object.shapeType,
+        object.width,
+        object.height,
+    );
+
+    return (
+        <g
+            transform={`rotate(${object.rotation} ${centerX} ${centerY})`}
+            opacity={object.locked ? 0.75 : 1}
+        >
+            {isSelected && (
+                <>
+                    <rect
+                        x={object.x}
+                        y={object.y}
+                        width={object.width}
+                        height={object.height}
+                        fill="none"
+                        stroke="#4A90E2"
+                        strokeWidth={2}
+                        strokeDasharray="6 4"
+                    />
+
+                    <line
+                        x1={centerX}
+                        y1={object.y}
+                        x2={centerX}
+                        y2={object.y - 32}
+                        stroke="#4A90E2"
+                        strokeWidth={2}
+                    />
+
+                    <circle
+                        cx={centerX}
+                        cy={object.y - 32}
+                        r={7}
+                        fill="#ffffff"
+                        stroke="#4A90E2"
+                        strokeWidth={2}
+                    />
+
+                    {[
+                        [object.x, object.y],
+                        [object.x + object.width, object.y],
+                        [object.x, object.y + object.height],
+                        [object.x + object.width, object.y + object.height],
+                    ].map(([x, y]) => (
+                        <rect
+                            key={`${x}-${y}`}
+                            x={x - 5}
+                            y={y - 5}
+                            width={10}
+                            height={10}
+                            rx={2}
+                            fill="#ffffff"
+                            stroke="#4A90E2"
+                            strokeWidth={2}
+                        />
+                    ))}
+                </>
+            )}
+
+            {object.shapeType === 'circle' && (
+                <ellipse
+                    cx={centerX}
+                    cy={centerY}
+                    rx={object.width / 2}
+                    ry={object.height / 2}
+                    fill={object.color}
+                />
+            )}
+
+            {object.shapeType === 'square' && (
+                <rect
+                    x={object.x}
+                    y={object.y}
+                    width={object.width}
+                    height={object.height}
+                    fill={object.color}
+                />
+            )}
+
+            {shapePoints && object.shapeType !== 'circle' && (
+                <polygon
+                    points={shapePoints}
+                    transform={`translate(${object.x} ${object.y})`}
+                    fill={object.color}
+                />
+            )}
+        </g>
+    );
+}
+
 export function DrawingLayer({
     objects,
     selectedObjectId,
@@ -483,6 +608,16 @@ export function DrawingLayer({
             </defs>
 
             {objects.map((object, objectIndex) => {
+                if (object.type === 'shape') {
+                    return (
+                        <ShapeSvgObject
+                            key={object.id}
+                            object={object}
+                            isSelected={object.id === selectedObjectId}
+                        />
+                    );
+                }
+
                 if (object.type !== 'draw' || object.tool === 'eraser') {
                     return null;
                 }

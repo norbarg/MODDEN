@@ -1,8 +1,9 @@
-// src/features/editor/ui/canvas/duplicate/duplicateEditorObject.ts
+// src/features/editor/ui/duplicate/editorObjectActions.ts
 import type {
     EditorDrawObject,
     EditorScene,
     EditorSceneObject,
+    EditorShapeObject,
 } from '../../model/editorTypes';
 
 const DUPLICATE_OFFSET = 24;
@@ -19,6 +20,17 @@ function duplicateDrawObject(object: EditorDrawObject): EditorDrawObject {
             x: point.x + DUPLICATE_OFFSET,
             y: point.y + DUPLICATE_OFFSET,
         })),
+        locked: false,
+    };
+}
+
+function duplicateShapeObject(object: EditorShapeObject): EditorShapeObject {
+    return {
+        ...object,
+        id: createObjectId('shape'),
+        x: object.x + DUPLICATE_OFFSET,
+        y: object.y + DUPLICATE_OFFSET,
+        locked: false,
     };
 }
 
@@ -46,6 +58,8 @@ export function duplicateEditorObject(
 
     if (object.type === 'draw') {
         duplicatedObject = duplicateDrawObject(object);
+    } else if (object.type === 'shape') {
+        duplicatedObject = duplicateShapeObject(object);
     } else {
         return {
             scene,

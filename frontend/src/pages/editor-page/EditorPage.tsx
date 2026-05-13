@@ -56,34 +56,41 @@ export function EditorPage() {
     const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
         null,
     );
-
+    
     const updateSelectedObjectColor = (color: string): EditorScene => {
-        if (!selectedObjectId) {
-            return scene;
-        }
+    if (!selectedObjectId) {
+        return scene;
+    }
 
-        return {
-            ...scene,
-            objects: scene.objects.map((object) => {
-                if (object.id !== selectedObjectId) {
-                    return object;
-                }
+    return {
+        ...scene,
+        objects: scene.objects.map((object) => {
+            if (object.id !== selectedObjectId) {
+                return object;
+            }
 
-                if (object.type !== 'draw') {
-                    return object;
-                }
+            if (object.locked) {
+                return object;
+            }
 
-                if (object.locked) {
-                    return object;
-                }
-
+            if (object.type === 'draw') {
                 return {
                     ...object,
                     color,
                 };
-            }),
-        };
+            }
+
+            if (object.type === 'shape') {
+                return {
+                    ...object,
+                    color,
+                };
+            }
+
+            return object;
+        }),
     };
+};
 
     const handleSelectedObjectColorChangeStart = () => {
         startSceneTransaction();
@@ -196,24 +203,34 @@ export function EditorPage() {
     const isDirty = isSceneDirty || isMetaDirty;
 
     useEffect(() => {
-        if (!project || isRestoringDraftRef.current) {
-            return;
-        }
+    if (!project || isRestoringDraftRef.current) {
+        return;
+    }
 
-        if (!isSceneDirty) {
-            return;
-        }
+    if (!isSceneDirty) {
+        editorDraftStorage.remove(project.id);
+        return;
+    }
 
-        editorDraftStorage.set({
-            projectId: project.id,
-            scene,
-            pastScenes,
-            futureScenes,
-            recentColors,
-            activePanel,
-            activeOption,
-        });
-    }, [project, scene, pastScenes, futureScenes, recentColors, isSceneDirty]);
+    editorDraftStorage.set({
+        projectId: project.id,
+        scene,
+        pastScenes,
+        futureScenes,
+        recentColors,
+        activePanel,
+        activeOption,
+    });
+}, [
+    project,
+    scene,
+    pastScenes,
+    futureScenes,
+    recentColors,
+    activePanel,
+    activeOption,
+    isSceneDirty,
+]);
 
     useEffect(() => {
         if (!projectId) {

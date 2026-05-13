@@ -1,0 +1,111 @@
+.editor-shapes-panel {
+    width: 100%;
+}
+
+.editor-shapes-panel h3 {
+    display: none;
+}
+
+.editor-shapes-panel__list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.editor-shapes-panel__item {
+    width: 58px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: visible;
+
+    transition: opacity 0.18s ease;
+}
+
+.editor-shapes-panel__item:hover,
+.editor-shapes-panel__item--active {
+    transform: none;
+}
+
+.editor-shapes-panel__shape {
+    display: block;
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    position: relative;
+}
+
+.editor-shapes-panel__item:hover
+    .editor-shapes-panel__shape:not(.editor-shapes-panel__shape--pentagon),
+.editor-shapes-panel__item--active
+    .editor-shapes-panel__shape:not(.editor-shapes-panel__shape--pentagon) {
+    filter:
+        drop-shadow(1px 0 0 #fe481c)
+        drop-shadow(-1px 0 0 #fe481c)
+        drop-shadow(0 1px 0 #fe481c)
+        drop-shadow(0 -1px 0 #fe481c);
+}
+
+.editor-shapes-panel__shape--square {
+    width: 29px;
+    height: 29px;
+}
+
+.editor-shapes-panel__shape--triangle {
+    width: 0;
+    height: 0;
+    background: transparent;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 27px solid #ffffff;
+}
+
+.editor-shapes-panel__shape--circle {
+    width: 29px;
+    height: 29px;
+    border-radius: 999px;
+}
+
+.editor-shapes-panel__shape--diamond {
+    width: 22px;
+    height: 22px;
+    transform: rotate(45deg);
+}
+
+.editor-shapes-panel__shape--pentagon {
+    width: 34px;
+    height: 32px;
+    background: transparent;
+    position: relative;
+    overflow: visible;
+}
+
+.editor-shapes-panel__shape--pentagon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #fe481c;
+    clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+    opacity: 0;
+}
+
+.editor-shapes-panel__shape--pentagon::after {
+    content: '';
+    position: absolute;
+    inset: 1.5px;
+    background: #ffffff;
+    clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+}
+
+.editor-shapes-panel__item:hover .editor-shapes-panel__shape--pentagon::before,
+.editor-shapes-panel__item--active .editor-shapes-panel__shape--pentagon::before {
+    opacity: 1;
+}

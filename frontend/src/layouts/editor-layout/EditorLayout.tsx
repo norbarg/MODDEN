@@ -165,6 +165,7 @@ export function EditorLayout({
                             onSceneCommit={onSceneCommit}
                             selectedObjectId={selectedObjectId}
                             onObjectSelect={onObjectSelect}
+                            onOptionChange={onOptionChange}
                         />
                     </div>
                 </div>

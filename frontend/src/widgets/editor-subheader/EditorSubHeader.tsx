@@ -68,7 +68,9 @@ export function EditorSubHeader({
     }
 
     const currentColor =
-        selectedObject.type === 'draw' ? selectedObject.color : '#5ed99a';
+    selectedObject.type === 'draw' || selectedObject.type === 'shape'
+        ? selectedObject.color
+        : '#5ed99a';
 
     const isSelectedObjectLocked = Boolean(selectedObject.locked);
 

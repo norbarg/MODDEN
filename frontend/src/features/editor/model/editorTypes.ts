@@ -29,7 +29,27 @@ export type EditorDrawObject = {
     locked?: boolean;
 };
 
-export type EditorSceneObject = EditorDrawObject;
+export type EditorShapeType =
+    | 'square'
+    | 'triangle'
+    | 'circle'
+    | 'diamond'
+    | 'pentagon';
+
+export type EditorShapeObject = {
+    id: string;
+    type: 'shape';
+    shapeType: EditorShapeType;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    color: string;
+    locked?: boolean;
+};
+
+export type EditorSceneObject = EditorDrawObject | EditorShapeObject;
 
 export type EditorScene = {
     version: 1;

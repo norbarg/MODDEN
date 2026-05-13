@@ -1,5 +1,6 @@
+// src/features/editor/ui/panels/shapes-panel/ShapesPanel.tsx
 import type { EditorOption } from '../../../model/editorTypes';
-import '../tools-panel/ToolsPanel.css';
+import './ShapesPanel.css';
 
 type ShapesPanelProps = {
     activeOption: EditorOption;
@@ -7,9 +8,11 @@ type ShapesPanelProps = {
 };
 
 const SHAPES = [
-    { id: 'rectangle', label: 'Rectangle' },
+    { id: 'square', label: 'Square' },
+    { id: 'triangle', label: 'Triangle' },
     { id: 'circle', label: 'Circle' },
-    { id: 'line', label: 'Line' },
+    { id: 'diamond', label: 'Diamond' },
+    { id: 'pentagon', label: 'Pentagon' },
 ];
 
 export function ShapesPanel({
@@ -17,32 +20,40 @@ export function ShapesPanel({
     onOptionChange,
 }: ShapesPanelProps) {
     return (
-        <div className="editor-panel">
+        <div className="editor-shapes-panel">
             <h3>Shapes</h3>
 
-            {SHAPES.map((shape) => {
-                const isActive =
-                    activeOption?.panel === 'shapes' &&
-                    activeOption.id === shape.id;
+            <div className="editor-shapes-panel__list">
+                {SHAPES.map((shape) => {
+                    const isActive =
+                        activeOption?.panel === 'shapes' &&
+                        activeOption.id === shape.id;
 
-                return (
-                    <button
-                        className={
-                            isActive ? 'editor-panel__button--active' : ''
-                        }
-                        type="button"
-                        key={shape.id}
-                        onClick={() =>
-                            onOptionChange({
-                                panel: 'shapes',
-                                id: shape.id,
-                            })
-                        }
-                    >
-                        {shape.label}
-                    </button>
-                );
-            })}
+                    return (
+                        <button
+                            className={`editor-shapes-panel__item ${
+                                isActive
+                                    ? 'editor-shapes-panel__item--active'
+                                    : ''
+                            }`}
+                            type="button"
+                            key={shape.id}
+                            aria-label={shape.label}
+                            title={shape.label}
+                            onClick={() =>
+                                onOptionChange({
+                                    panel: 'shapes',
+                                    id: shape.id,
+                                })
+                            }
+                        >
+                            <span
+                                className={`editor-shapes-panel__shape editor-shapes-panel__shape--${shape.id}`}
+                            />
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 }
