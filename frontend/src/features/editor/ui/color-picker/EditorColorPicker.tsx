@@ -164,6 +164,7 @@ export function EditorColorPicker({
     const rootRef = useRef<HTMLDivElement | null>(null);
     const saturationRef = useRef<HTMLDivElement | null>(null);
     const draftColorRef = useRef(value);
+    const hasUncommittedChangeRef = useRef(false);
 
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -196,15 +197,22 @@ export function EditorColorPicker({
             ) {
                 setIsOpen(false);
                 setIsExpanded(false);
-                onCommit(draftColor);
+
+                if (hasUncommittedChangeRef.current) {
+                    onCommit(draftColorRef.current);
+                    hasUncommittedChangeRef.current = false;
+                }
             }
         };
-
         const handleEscape = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 setIsOpen(false);
                 setIsExpanded(false);
-                onCommit(draftColor);
+
+                if (hasUncommittedChangeRef.current) {
+                    onCommit(draftColorRef.current);
+                    hasUncommittedChangeRef.current = false;
+                }
             }
         };
 
@@ -215,10 +223,12 @@ export function EditorColorPicker({
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [draftColor, isOpen, onCommit]);
+    }, [isOpen, onCommit]);
 
     const previewColor = (color: string) => {
         const normalizedColor = color.toUpperCase();
+
+        hasUncommittedChangeRef.current = true;
 
         setDraftColor(normalizedColor);
         setHexInput(normalizedColor);
@@ -232,6 +242,10 @@ export function EditorColorPicker({
         const nextColor = previewColor(color);
 
         onCommit(nextColor);
+        hasUncommittedChangeRef.current = false;
+
+        setIsOpen(false);
+        setIsExpanded(false);
     };
 
     const handleSaturationPointer = (clientX: number, clientY: number) => {

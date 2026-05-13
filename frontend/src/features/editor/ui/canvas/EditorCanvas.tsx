@@ -1,17 +1,16 @@
 // src/features/editor/ui/canvas/EditorCanvas.tsx
 import { useEffect, useMemo, useRef } from 'react';
 import type { WorkspaceProject } from '../../../../shared/types/workspace';
-import type {
-    EditorOption,
-    EditorScene,
-    EditorShapeObject,
-    EditorShapeType,
-} from '../../model/editorTypes';
+import type { EditorOption, EditorScene } from '../../model/editorTypes';
 import {
-    DrawingLayer,
+    getActiveDrawingTool,
     useCanvasDrawing,
-} from '../panels/tools-panel/drawing/EditorCanvasDrawing';
-import { useCanvasObjectSelection } from './selection/useCanvasObjectSelection';
+} from '../panels/tools-panel/canvasDrawing';
+import { useCanvasScene } from './canvasScene';
+import {
+    getActiveShapeType,
+    placeShapeOnCanvas,
+} from '../panels/shapes-panel/canvasShape';
 import { useEditorCanvasZoom } from './zoom/useEditorCanvasZoom';
 import './EditorCanvas.css';
 
@@ -25,46 +24,10 @@ type EditorCanvasProps = {
     onCanvasSelect: () => void;
     onSceneCommit: (scene: EditorScene) => void;
     toolStrokeWidths: Record<string, number>;
-    selectedObjectId: string | null;
-    onObjectSelect: (objectId: string | null) => void;
+    selectedObjectIds: string[];
+    onObjectSelect: (objectIds: string[]) => void;
     onOptionChange: (option: EditorOption) => void;
 };
-
-const SHAPE_TYPES: EditorShapeType[] = [
-    'square',
-    'triangle',
-    'circle',
-    'diamond',
-    'pentagon',
-];
-
-function createShapeId() {
-    return `shape_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
-
-function isShapeType(value: string): value is EditorShapeType {
-    return SHAPE_TYPES.includes(value as EditorShapeType);
-}
-
-function createShapeObject(
-    shapeType: EditorShapeType,
-    x: number,
-    y: number,
-): EditorShapeObject {
-    const defaultSize = shapeType === 'triangle' ? 120 : 110;
-
-    return {
-        id: createShapeId(),
-        type: 'shape',
-        shapeType,
-        x: x - defaultSize / 2,
-        y: y - defaultSize / 2,
-        width: defaultSize,
-        height: defaultSize,
-        rotation: 0,
-        color: '#dcd9d9ff',
-    };
-}
 
 export function EditorCanvas({
     project,
@@ -76,24 +39,19 @@ export function EditorCanvas({
     onCanvasSelect,
     onSceneCommit,
     toolStrokeWidths,
-    selectedObjectId,
+    selectedObjectIds,
     onObjectSelect,
     onOptionChange,
 }: EditorCanvasProps) {
     const canvasAreaRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef<HTMLDivElement | null>(null);
+    const fabricCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const latestSceneRef = useRef(scene);
 
-    const activeShapeType = useMemo(() => {
-        if (
-            activeOption?.panel === 'shapes' &&
-            isShapeType(activeOption.id)
-        ) {
-            return activeOption.id;
-        }
-
-        return null;
-    }, [activeOption]);
+    const activeShapeType = useMemo(
+        () => getActiveShapeType(activeOption),
+        [activeOption],
+    );
 
     const { canvasScale, handleZoomIn, handleZoomOut } = useEditorCanvasZoom({
         zoom,
@@ -101,91 +59,54 @@ export function EditorCanvas({
         canvasAreaRef,
     });
 
-    const {
-        activeDrawingTool,
-        visibleObjects,
-        handlePointerDown,
-        handlePointerMove,
-        handlePointerUp,
-    } = useCanvasDrawing({
-        scene,
-        activeOption,
-        toolColors,
-        toolStrokeWidths,
-        canvasScale,
-        canvasRef,
-        getLatestScene: () => latestSceneRef.current,
+    const activeDrawingTool = getActiveDrawingTool(activeOption);
+
+    const renderScene: EditorScene = {
+        ...scene,
+        objects: scene.objects,
+    };
+
+    const { canvasInstanceRef } = useCanvasScene({
+        scene: renderScene,
+        canvasWidth: project.canvasWidth,
+        canvasHeight: project.canvasHeight,
+        selectedObjectIds,
+        onObjectSelect,
+        canvasElementRef: fabricCanvasRef,
         onSceneCommit,
+        isInteractionDisabled: Boolean(activeDrawingTool || activeShapeType),
     });
 
-    const {
-        visibleScene,
-        handleSelectionPointerDown,
-        handleSelectionPointerMove,
-        handleSelectionPointerUp,
-    } = useCanvasObjectSelection({
-        scene,
-        canvasScale,
-        canvasRef,
-        selectedObjectId,
-        getLatestScene: () => latestSceneRef.current,
-        onObjectSelect,
-        onSceneCommit,
-    });
+    const { handlePointerDown, handlePointerMove, handlePointerUp } =
+        useCanvasDrawing({
+            scene,
+            activeOption,
+            toolColors,
+            toolStrokeWidths,
+            canvasScale,
+            canvasRef,
+            canvasInstanceRef,
+            getLatestScene: () => latestSceneRef.current,
+            onSceneCommit,
+        });
 
     useEffect(() => {
         latestSceneRef.current = scene;
     }, [scene]);
 
-    const getCanvasPoint = (event: React.PointerEvent<HTMLDivElement>) => {
-        const canvas = canvasRef.current;
-
-        if (!canvas) {
-            return null;
-        }
-
-        const rect = canvas.getBoundingClientRect();
-
-        return {
-            x: (event.clientX - rect.left) / canvasScale,
-            y: (event.clientY - rect.top) / canvasScale,
-        };
-    };
-
     const handleShapePlacement = (
-    event: React.PointerEvent<HTMLDivElement>,
-) => {
-    if (!activeShapeType) {
-        return false;
-    }
-
-    const point = getCanvasPoint(event);
-
-    if (!point) {
-        return false;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const newShape = createShapeObject(activeShapeType, point.x, point.y);
-    const latestScene = latestSceneRef.current;
-
-    onSceneCommit({
-        ...latestScene,
-        objects: [...latestScene.objects, newShape],
-    });
-
-    onObjectSelect(newShape.id);
-    onOptionChange(null);
-
-    return true;
-};
-
-    const handleCanvasClick = () => {
-        if (!activeDrawingTool && !activeShapeType) {
-            onCanvasSelect();
-        }
+        event: React.PointerEvent<HTMLDivElement>,
+    ) => {
+        return placeShapeOnCanvas({
+            event,
+            activeShapeType,
+            canvasScale,
+            canvasRef,
+            getLatestScene: () => latestSceneRef.current,
+            onSceneCommit,
+            onObjectSelect,
+            onOptionChange,
+        });
     };
 
     return (
@@ -198,42 +119,28 @@ export function EditorCanvas({
                     } ${activeShapeType ? 'editor-canvas--placing-shape' : ''}`}
                     role="button"
                     tabIndex={0}
-                    onClick={handleCanvasClick}
                     onPointerDown={(event) => {
-                        if (activeDrawingTool) {
+                        if (activeDrawingTool === 'eraser') {
                             handlePointerDown(event);
                             return;
                         }
 
-                        if (handleShapePlacement(event)) {
-                            return;
-                        }
-
-                        handleSelectionPointerDown(event);
+                        handleShapePlacement(event);
                     }}
                     onPointerMove={(event) => {
-                        if (activeDrawingTool) {
+                        if (activeDrawingTool === 'eraser') {
                             handlePointerMove(event);
-                            return;
                         }
-
-                        handleSelectionPointerMove(event);
                     }}
                     onPointerUp={(event) => {
-                        if (activeDrawingTool) {
+                        if (activeDrawingTool === 'eraser') {
                             handlePointerUp(event);
-                            return;
                         }
-
-                        handleSelectionPointerUp(event);
                     }}
                     onPointerCancel={(event) => {
-                        if (activeDrawingTool) {
+                        if (activeDrawingTool === 'eraser') {
                             handlePointerUp(event);
-                            return;
                         }
-
-                        handleSelectionPointerUp(event);
                     }}
                     onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -247,15 +154,9 @@ export function EditorCanvas({
                         transform: `scale(${canvasScale})`,
                     }}
                 >
-                    <DrawingLayer
-                        objects={
-                            activeDrawingTool
-                                ? visibleObjects
-                                : visibleScene.objects
-                        }
-                        selectedObjectId={selectedObjectId}
-                        canvasWidth={project.canvasWidth}
-                        canvasHeight={project.canvasHeight}
+                    <canvas
+                        ref={fabricCanvasRef}
+                        className="editor-canvas__fabric-layer"
                     />
                 </div>
             </div>

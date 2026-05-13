@@ -28,7 +28,7 @@ import type {
     EditorScene,
 } from '../../features/editor/model/editorTypes';
 import { useEditorProjectSave } from '../../features/editor/model/useEditorProjectSave';
-
+import { useEditorKeyboardMove } from '../../features/editor/model/editorKeyboardMove';
 import { useEditorHistory } from '../../features/editor/model/useEditorHistory';
 import { editorDraftStorage } from '../../features/editor/model/editorDraftStorage';
 
@@ -39,8 +39,8 @@ import {
 import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-changes-modal';
 import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
 import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
-import { toggleEditorObjectLock } from '../../features/editor/ui/lock/toggleEditorObjectLock';
-import { deleteEditorObject } from '../../features/editor/ui/delete/deleteEditorObject';
+// import { toggleEditorObjectLock } from '../../features/editor/ui/lock/toggleEditorObjectLock';
+// import { deleteEditorObject } from '../../features/editor/ui/delete/deleteEditorObject';
 
 import './EditorPage.css';
 
@@ -53,46 +53,59 @@ export function EditorPage() {
     const [activePanel, setActivePanel] = useState<EditorPanel>(null);
     const [activeOption, setActiveOption] = useState<EditorOption>(null);
 
-    const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
-        null,
-    );
-    
+    const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
+
+    const selectedObjectId =
+        selectedObjectIds.length === 1 ? selectedObjectIds[0] : null;
+
     const updateSelectedObjectColor = (color: string): EditorScene => {
-    if (!selectedObjectId) {
-        return scene;
+        if (selectedObjectIds.length === 0) {
+            return scene;
+        }
+
+        const selectedIds = new Set(selectedObjectIds);
+
+        return {
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (!selectedIds.has(object.id)) {
+                    return object;
+                }
+
+                if (object.locked) {
+                    return object;
+                }
+
+                return {
+                    ...object,
+                    color,
+                };
+            }),
+        };
+    };
+
+    function areStringArraysEqual(first: string[], second: string[]) {
+        if (first.length !== second.length) {
+            return false;
+        }
+
+        return first.every((value, index) => value === second[index]);
     }
 
-    return {
-        ...scene,
-        objects: scene.objects.map((object) => {
-            if (object.id !== selectedObjectId) {
-                return object;
+    const handleObjectSelect = (objectIds: string[]) => {
+        colorEditingObjectIdRef.current = null;
+
+        setSelectedObjectIds((currentObjectIds) => {
+            if (areStringArraysEqual(currentObjectIds, objectIds)) {
+                return currentObjectIds;
             }
 
-            if (object.locked) {
-                return object;
-            }
-
-            if (object.type === 'draw') {
-                return {
-                    ...object,
-                    color,
-                };
-            }
-
-            if (object.type === 'shape') {
-                return {
-                    ...object,
-                    color,
-                };
-            }
-
-            return object;
-        }),
+            return objectIds;
+        });
     };
-};
 
     const handleSelectedObjectColorChangeStart = () => {
+        colorEditingObjectIdRef.current = selectedObjectId;
         startSceneTransaction();
     };
 
@@ -104,6 +117,8 @@ export function EditorPage() {
         previewScene(updateSelectedObjectColor(color));
         commitSceneTransaction();
         addRecentColor(color);
+
+        colorEditingObjectIdRef.current = null;
     };
     const [toolColors, setToolColors] = useState<Record<string, string>>({
         pencil: '#98BA61',
@@ -118,7 +133,7 @@ export function EditorPage() {
         pencil: 5,
         marker: 12,
         highliter: 22,
-        eraser: 28,
+        eraser: 1,
     });
 
     const [zoom, setZoom] = useState(100);
@@ -147,6 +162,7 @@ export function EditorPage() {
         });
 
     const isRestoringDraftRef = useRef(false);
+    const colorEditingObjectIdRef = useRef<string | null>(null);
 
     const { recentColors, addRecentColor, restoreRecentColors } =
         useRecentColors();
@@ -202,35 +218,43 @@ export function EditorPage() {
 
     const isDirty = isSceneDirty || isMetaDirty;
 
+    useEditorKeyboardMove({
+        selectedObjectIds,
+        isDisabled: isEditModalOpen || isSaveModalOpen || isUnsavedModalOpen,
+        startSceneTransaction,
+        previewScene,
+        commitSceneTransaction,
+    });
+
     useEffect(() => {
-    if (!project || isRestoringDraftRef.current) {
-        return;
-    }
+        if (!project || isRestoringDraftRef.current) {
+            return;
+        }
 
-    if (!isSceneDirty) {
-        editorDraftStorage.remove(project.id);
-        return;
-    }
+        if (!isSceneDirty) {
+            editorDraftStorage.remove(project.id);
+            return;
+        }
 
-    editorDraftStorage.set({
-        projectId: project.id,
+        editorDraftStorage.set({
+            projectId: project.id,
+            scene,
+            pastScenes,
+            futureScenes,
+            recentColors,
+            activePanel,
+            activeOption,
+        });
+    }, [
+        project,
         scene,
         pastScenes,
         futureScenes,
         recentColors,
         activePanel,
         activeOption,
-    });
-}, [
-    project,
-    scene,
-    pastScenes,
-    futureScenes,
-    recentColors,
-    activePanel,
-    activeOption,
-    isSceneDirty,
-]);
+        isSceneDirty,
+    ]);
 
     useEffect(() => {
         if (!projectId) {
@@ -323,54 +347,89 @@ export function EditorPage() {
     }, [navigate, projectId, resetScene, restoreDraftHistory]);
 
     const handleSelectedObjectDelete = () => {
-        if (!selectedObjectId) {
+        if (selectedObjectIds.length === 0) {
             return;
         }
 
-        const result = deleteEditorObject(scene, selectedObjectId);
+        const selectedIds = new Set(selectedObjectIds);
 
-        if (!result.deleted) {
-            return;
-        }
+        const nextScene: EditorScene = {
+            ...scene,
+            objects: scene.objects.filter((object) => {
+                if (!selectedIds.has(object.id)) {
+                    return true;
+                }
 
-        applySceneChange(result.scene);
-        setSelectedObjectId(null);
+                return Boolean(object.locked);
+            }),
+        };
+
+        applySceneChange(nextScene);
+        setSelectedObjectIds([]);
     };
 
     const handleSelectedObjectLockToggle = () => {
-        if (!selectedObjectId) {
+        if (selectedObjectIds.length === 0) {
             return;
         }
 
-        const result = toggleEditorObjectLock(scene, selectedObjectId);
+        const selectedIds = new Set(selectedObjectIds);
 
-        if (!result.updatedObject) {
-            return;
-        }
+        const selectedObjects = scene.objects.filter((object) =>
+            selectedIds.has(object.id),
+        );
 
-        applySceneChange(result.scene);
+        const shouldLock = selectedObjects.some((object) => !object.locked);
+
+        const nextScene: EditorScene = {
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (!selectedIds.has(object.id)) {
+                    return object;
+                }
+
+                return {
+                    ...object,
+                    locked: shouldLock,
+                };
+            }),
+        };
+
+        applySceneChange(nextScene);
     };
 
     const handleSelectedObjectDuplicate = () => {
-        if (!selectedObjectId) {
+        if (selectedObjectIds.length === 0) {
             return;
         }
 
-        const result = duplicateEditorObject(scene, selectedObjectId);
+        let nextScene = scene;
+        const duplicatedIds: string[] = [];
 
-        if (!result.duplicatedObject) {
+        selectedObjectIds.forEach((objectId) => {
+            const result = duplicateEditorObject(nextScene, objectId);
+
+            if (!result.duplicatedObject) {
+                return;
+            }
+
+            nextScene = result.scene;
+            duplicatedIds.push(result.duplicatedObject.id);
+        });
+
+        if (duplicatedIds.length === 0) {
             return;
         }
 
-        applySceneChange(result.scene);
-        setSelectedObjectId(result.duplicatedObject.id);
+        applySceneChange(nextScene);
+        setSelectedObjectIds(duplicatedIds);
     };
 
     const handleOptionChange = (option: EditorOption) => {
         setActiveOption(option);
 
         if (option?.panel === 'tools' && option.id !== 'cursor') {
-            setSelectedObjectId(null);
+            setSelectedObjectIds([]);
         }
     };
 
@@ -487,7 +546,8 @@ export function EditorPage() {
                 scene={scene}
                 activePanel={activePanel}
                 activeOption={activeOption}
-                selectedObjectId={selectedObjectId}
+                selectedObjectIds={selectedObjectIds}
+                onObjectSelect={handleObjectSelect}
                 recentColors={recentColors}
                 toolColors={toolColors}
                 toolStrokeWidths={toolStrokeWidths}
@@ -500,7 +560,6 @@ export function EditorPage() {
                 onRedo={redo}
                 onPanelChange={handlePanelChange}
                 onOptionChange={handleOptionChange}
-                onObjectSelect={setSelectedObjectId}
                 onSceneCommit={(nextScene) => applySceneChange(nextScene)}
                 onToolColorPreview={handleToolColorPreview}
                 onToolColorCommit={handleToolColorCommit}

@@ -14,19 +14,25 @@ export type EditorOption = {
 } | null;
 
 export type EditorDrawingTool = 'pencil' | 'marker' | 'highliter' | 'eraser';
+export type EditorDrawPathCommand = (string | number)[];
 
 export type EditorDrawObject = {
     id: string;
     type: 'draw';
     tool: EditorDrawingTool;
-    points: {
-        x: number;
-        y: number;
-    }[];
+
+    path: EditorDrawPathCommand[];
+
     color: string;
     strokeWidth: number;
     opacity: number;
     locked?: boolean;
+
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    rotation: number;
 };
 
 export type EditorShapeType =

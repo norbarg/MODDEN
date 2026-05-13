@@ -16,14 +16,11 @@ function duplicateDrawObject(object: EditorDrawObject): EditorDrawObject {
     return {
         ...object,
         id: createObjectId('draw'),
-        points: object.points.map((point) => ({
-            x: point.x + DUPLICATE_OFFSET,
-            y: point.y + DUPLICATE_OFFSET,
-        })),
+        x: object.x + DUPLICATE_OFFSET,
+        y: object.y + DUPLICATE_OFFSET,
         locked: false,
     };
 }
-
 function duplicateShapeObject(object: EditorShapeObject): EditorShapeObject {
     return {
         ...object,

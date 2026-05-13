@@ -25,11 +25,11 @@ type EditorSubHeaderProps = {
     onSelectedObjectDuplicate: () => void;
     onSelectedObjectLockToggle: () => void;
     onSelectedObjectDelete: () => void;
+    selectedObjects: EditorSceneObject[];
 };
 
 export function EditorSubHeader({
     scene,
-    selectedObject,
     recentCanvasColors,
     onCanvasBackgroundChangeStart,
     onCanvasBackgroundPreview,
@@ -40,8 +40,11 @@ export function EditorSubHeader({
     onSelectedObjectDuplicate,
     onSelectedObjectLockToggle,
     onSelectedObjectDelete,
+    selectedObjects,
 }: EditorSubHeaderProps) {
-    if (!selectedObject) {
+    const hasSelectedObjects = selectedObjects.length > 0;
+
+    if (!hasSelectedObjects) {
         return (
             <div
                 className="editor-subheader editor-subheader--canvas"
@@ -67,19 +70,19 @@ export function EditorSubHeader({
         );
     }
 
-    const currentColor =
-    selectedObject.type === 'draw' || selectedObject.type === 'shape'
-        ? selectedObject.color
-        : '#5ed99a';
+    const firstSelectedObject = selectedObjects[0];
+    const currentColor = firstSelectedObject.color;
 
-    const isSelectedObjectLocked = Boolean(selectedObject.locked);
+    const areAllSelectedObjectsLocked = selectedObjects.every(
+        (object) => object.locked,
+    );
 
     return (
         <div
             className="editor-subheader editor-subheader--object"
             aria-label="Object toolbar"
         >
-            {isSelectedObjectLocked ? (
+            {areAllSelectedObjectsLocked ? (
                 <button
                     className="editor-subheader__color editor-subheader__color--disabled"
                     type="button"
@@ -96,6 +99,9 @@ export function EditorSubHeader({
                 </button>
             ) : (
                 <EditorColorPicker
+                    key={`selected-objects-color-${selectedObjects
+                        .map((object) => object.id)
+                        .join('-')}`}
                     value={currentColor}
                     recentColors={recentCanvasColors}
                     triggerClassName="editor-subheader__color"
@@ -129,11 +135,17 @@ export function EditorSubHeader({
             <button
                 className="editor-subheader__button"
                 type="button"
-                aria-label={isSelectedObjectLocked ? 'Unlock' : 'Lock'}
+                aria-label={
+                    areAllSelectedObjectsLocked
+                        ? 'Unlock selected objects'
+                        : 'Lock selected objects'
+                }
                 onClick={onSelectedObjectLockToggle}
             >
                 <img
-                    src={isSelectedObjectLocked ? lockClosedIcon : lockIcon}
+                    src={
+                        areAllSelectedObjectsLocked ? lockClosedIcon : lockIcon
+                    }
                     alt=""
                     aria-hidden="true"
                 />
@@ -144,7 +156,7 @@ export function EditorSubHeader({
                 type="button"
                 aria-label="Delete"
                 onClick={onSelectedObjectDelete}
-                disabled={isSelectedObjectLocked}
+                disabled={areAllSelectedObjectsLocked}
             >
                 <img src={deleteIcon} alt="" aria-hidden="true" />
             </button>

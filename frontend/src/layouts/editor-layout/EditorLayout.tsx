@@ -40,8 +40,8 @@ type EditorLayoutProps = {
     onOpenProjectSettings: () => void;
     onOpenSaveProject: () => void;
     onBack: () => void;
-    selectedObjectId: string | null;
-    onObjectSelect: (objectId: string | null) => void;
+    selectedObjectIds: string[];
+    onObjectSelect: (objectIds: string[]) => void;
     onSelectedObjectColorChangeStart: () => void;
     onSelectedObjectColorPreview: (color: string) => void;
     onSelectedObjectColorCommit: (color: string) => void;
@@ -78,7 +78,7 @@ export function EditorLayout({
     onOpenProjectSettings,
     onOpenSaveProject,
     onBack,
-    selectedObjectId,
+    selectedObjectIds,
     onObjectSelect,
     onSelectedObjectColorChangeStart,
     onSelectedObjectColorPreview,
@@ -87,8 +87,12 @@ export function EditorLayout({
     onSelectedObjectLockToggle,
     onSelectedObjectDelete,
 }: EditorLayoutProps) {
+    const selectedObjects = scene.objects.filter((object) =>
+        selectedObjectIds.includes(object.id),
+    );
+
     const selectedObject =
-        scene.objects.find((object) => object.id === selectedObjectId) ?? null;
+        selectedObjects.length === 1 ? selectedObjects[0] : null;
     return (
         <main className="editor-layout">
             <EditorSidebar
@@ -127,6 +131,7 @@ export function EditorLayout({
                         <EditorSubHeader
                             scene={scene}
                             selectedObject={selectedObject}
+                            selectedObjects={selectedObjects}
                             recentCanvasColors={recentColors}
                             onCanvasBackgroundChangeStart={
                                 onCanvasBackgroundChangeStart
@@ -163,7 +168,7 @@ export function EditorLayout({
                             onZoomChange={onZoomChange}
                             onCanvasSelect={() => onOptionChange(null)}
                             onSceneCommit={onSceneCommit}
-                            selectedObjectId={selectedObjectId}
+                            selectedObjectIds={selectedObjectIds}
                             onObjectSelect={onObjectSelect}
                             onOptionChange={onOptionChange}
                         />

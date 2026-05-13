@@ -7,6 +7,7 @@ const DEFAULT_RECENT_COLORS = [
     '#F8A1C4',
     '#FF5C8A',
     '#98BA61',
+    '#FFD166',
 ];
 
 const MAX_RECENT_COLORS = 8;
