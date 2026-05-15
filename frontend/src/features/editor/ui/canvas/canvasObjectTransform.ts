@@ -7,6 +7,7 @@ import type {
     EditorScene,
     EditorSceneObject,
     EditorShapeObject,
+    EditorTextObject,
 } from '../../model/editorTypes';
 import { getEditorObjectId } from './canvasObjects';
 
@@ -75,6 +76,29 @@ function updateImageObjectFromCanvasObject(
     };
 }
 
+function updateTextObjectFromCanvasObject(
+    object: EditorTextObject,
+    canvasObject: FabricObject,
+): EditorTextObject {
+    const transform = getObjectTransform(canvasObject);
+
+    const baseWidth = canvasObject.width ?? object.width;
+    const baseHeight = canvasObject.height ?? object.height;
+
+    const width = Math.max(1, baseWidth * transform.scaleX);
+    const height = Math.max(1, baseHeight * transform.scaleY);
+
+    return {
+        ...object,
+        x: transform.centerX - width / 2,
+        y: transform.centerY - height / 2,
+        width,
+        height,
+        fontSize: Math.max(1, object.fontSize * transform.scaleY),
+        rotation: transform.rotation,
+    };
+}
+
 function updateDrawObjectFromCanvasObject(
     object: EditorDrawObject,
     canvasObject: FabricObject,
@@ -121,6 +145,10 @@ export function updateSceneObjectFromCanvasObject(
 
             if (object.type === 'image') {
                 return updateImageObjectFromCanvasObject(object, canvasObject);
+            }
+
+            if (object.type === 'text') {
+                return updateTextObjectFromCanvasObject(object, canvasObject);
             }
 
             return updateDrawObjectFromCanvasObject(object, canvasObject);

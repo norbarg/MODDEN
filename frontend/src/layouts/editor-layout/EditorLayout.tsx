@@ -6,6 +6,7 @@ import type {
     EditorPanel,
     EditorScene,
     EditorUploadedImage,
+    EditorTextObject,
 } from '../../features/editor/model/editorTypes';
 import { EditorSidebar } from '../../widgets/editor-sidebar/EditorSidebar';
 import { EditorHeader } from '../../widgets/editor-header/EditorHeader';
@@ -59,6 +60,10 @@ type EditorLayoutProps = {
     onSelectedObjectDuplicate: () => void;
     onSelectedObjectLockToggle: () => void;
     onSelectedObjectDelete: () => void;
+    onSelectedTextChange: (changes: Partial<EditorTextObject>) => void;
+    onSelectedTextColorChangeStart: () => void;
+    onSelectedTextColorPreview: (color: string) => void;
+    onSelectedTextColorCommit: (color: string) => void;
 };
 
 export function EditorLayout({
@@ -103,6 +108,10 @@ export function EditorLayout({
     onSelectedObjectDuplicate,
     onSelectedObjectLockToggle,
     onSelectedObjectDelete,
+    onSelectedTextChange,
+    onSelectedTextColorChangeStart,
+    onSelectedTextColorPreview,
+    onSelectedTextColorCommit,
 }: EditorLayoutProps) {
     const selectedObjects = scene.objects.filter((object) =>
         selectedObjectIds.includes(object.id),
@@ -184,6 +193,16 @@ export function EditorLayout({
                                 onSelectedObjectLockToggle
                             }
                             onSelectedObjectDelete={onSelectedObjectDelete}
+                            onSelectedTextChange={onSelectedTextChange}
+                            onSelectedTextColorChangeStart={
+                                onSelectedTextColorChangeStart
+                            }
+                            onSelectedTextColorPreview={
+                                onSelectedTextColorPreview
+                            }
+                            onSelectedTextColorCommit={
+                                onSelectedTextColorCommit
+                            }
                         />
 
                         <EditorCanvas

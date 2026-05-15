@@ -79,6 +79,27 @@ export type EditorImageObject = {
     locked?: boolean;
 };
 
+export type EditorTextFontWeight = '400' | '500' | '700';
+
+export type EditorTextObject = {
+    id: string;
+    type: 'text';
+    text: string;
+
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+
+    fontFamily: string;
+    fontWeight: EditorTextFontWeight;
+    fontSize: number;
+    color: string;
+
+    locked?: boolean;
+};
+
 export type EditorUploadedImage = {
     id: string;
     src: string;
@@ -88,7 +109,8 @@ export type EditorUploadedImage = {
 export type EditorSceneObject =
     | EditorDrawObject
     | EditorShapeObject
-    | EditorImageObject;
+    | EditorImageObject
+    | EditorTextObject;
 
 export type EditorScene = {
     version: 1;

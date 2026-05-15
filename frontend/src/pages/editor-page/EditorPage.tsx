@@ -7,6 +7,7 @@ import { ApiError } from '../../shared/api/apiClient';
 import { authStorage } from '../../shared/auth/authStorage';
 import { assetsApi } from '../../shared/api/assetsApi';
 import { createImageObject } from '../../features/editor/ui/panels/uploads-panel/canvasImage';
+import { createTextObject } from '../../features/editor/ui/panels/text-panel/canvasText';
 import type {
     WorkspaceProject,
     WorkspaceTemplate,
@@ -30,6 +31,7 @@ import type {
     EditorScene,
     EditorImageFilterValues,
     EditorUploadedImage,
+    EditorTextObject,
 } from '../../features/editor/model/editorTypes';
 import { useEditorProjectSave } from '../../features/editor/model/useEditorProjectSave';
 import { useEditorKeyboardMove } from '../../features/editor/model/editorKeyboardMove';
@@ -57,7 +59,9 @@ export function EditorPage() {
 
     const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
 
-    const [uploadedImages, setUploadedImages] = useState<EditorUploadedImage[]>([]);
+    const [uploadedImages, setUploadedImages] = useState<EditorUploadedImage[]>(
+        [],
+    );
     const [isUploadingImages, setIsUploadingImages] = useState(false);
 
     const selectedObjectId =
@@ -70,26 +74,30 @@ export function EditorPage() {
 
         const selectedIds = new Set(selectedObjectIds);
         return {
-    ...scene,
-    objects: scene.objects.map((object) => {
-        if (!selectedIds.has(object.id)) {
-            return object;
-        }
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (!selectedIds.has(object.id)) {
+                    return object;
+                }
 
-        if (object.locked) {
-            return object;
-        }
+                if (object.locked) {
+                    return object;
+                }
 
-        if (object.type !== 'shape' && object.type !== 'draw') {
-            return object;
-        }
+                if (
+                    object.type !== 'shape' &&
+                    object.type !== 'draw' &&
+                    object.type !== 'text'
+                ) {
+                    return object;
+                }
 
-        return {
-            ...object,
-            color,
+                return {
+                    ...object,
+                    color,
+                };
+            }),
         };
-    }),
-};
     };
 
     function areStringArraysEqual(first: string[], second: string[]) {
@@ -276,11 +284,12 @@ export function EditorPage() {
             try {
                 setIsLoading(true);
 
-                const [loadedProject, myTemplates, myAssets] = await Promise.all([
-    projectsApi.getProject(currentProjectId),
-    templatesApi.getMyTemplates(),
-    assetsApi.getMyAssets(),
-]);
+                const [loadedProject, myTemplates, myAssets] =
+                    await Promise.all([
+                        projectsApi.getProject(currentProjectId),
+                        templatesApi.getMyTemplates(),
+                        assetsApi.getMyAssets(),
+                    ]);
 
                 if (!isMounted) {
                     return;
@@ -301,13 +310,13 @@ export function EditorPage() {
                 setLinkedTemplate(existingTemplate);
 
                 setUploadedImages(
-    myAssets.map((asset) => ({
-        id: asset.id,
-        src: asset.fileUrl,
-        fileName: asset.fileUrl.split('/').pop() ?? 'Uploaded image',
-    })),
-);
-
+                    myAssets.map((asset) => ({
+                        id: asset.id,
+                        src: asset.fileUrl,
+                        fileName:
+                            asset.fileUrl.split('/').pop() ?? 'Uploaded image',
+                    })),
+                );
 
                 isRestoringDraftRef.current = true;
 
@@ -365,130 +374,175 @@ export function EditorPage() {
     }, [navigate, projectId, resetScene, restoreDraftHistory]);
 
     const handleImagesUpload = async (files: File[]) => {
-    setIsUploadingImages(true);
+        setIsUploadingImages(true);
 
-    try {
-        const uploadedAssets = await Promise.all(
-            files.map((file) => assetsApi.uploadAsset(file)),
-        );
+        try {
+            const uploadedAssets = await Promise.all(
+                files.map((file) => assetsApi.uploadAsset(file)),
+            );
 
-        const nextImages: EditorUploadedImage[] = uploadedAssets.map(
-            ({ asset }) => ({
-                id: asset.id,
-                src: asset.fileUrl,
-                fileName: asset.fileUrl.split('/').pop() ?? 'Uploaded image',
-            }),
-        );
+            const nextImages: EditorUploadedImage[] = uploadedAssets.map(
+                ({ asset }) => ({
+                    id: asset.id,
+                    src: asset.fileUrl,
+                    fileName:
+                        asset.fileUrl.split('/').pop() ?? 'Uploaded image',
+                }),
+            );
 
-        setUploadedImages((currentImages) => [
-            ...nextImages,
-            ...currentImages,
-        ]);
-    } catch (err) {
-        console.error(err);
-    } finally {
-        setIsUploadingImages(false);
-    }
-};
+            setUploadedImages((currentImages) => [
+                ...nextImages,
+                ...currentImages,
+            ]);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsUploadingImages(false);
+        }
+    };
 
-// const handleUploadedImageDelete = async (imageId: string) => {
-//     try {
-//         await assetsApi.deleteAsset(imageId);
+    // const handleUploadedImageDelete = async (imageId: string) => {
+    //     try {
+    //         await assetsApi.deleteAsset(imageId);
 
-//         setUploadedImages((currentImages) =>
-//             currentImages.filter((image) => image.id !== imageId),
-//         );
-//     } catch (err) {
-//         console.error(err);
-//     }
-// };
+    //         setUploadedImages((currentImages) =>
+    //             currentImages.filter((image) => image.id !== imageId),
+    //         );
+    //     } catch (err) {
+    //         console.error(err);
+    //     }
+    // };
 
-const handleUploadedImageDelete = async (imageId: string) => {
-    try {
-        await assetsApi.deleteAsset(imageId);
+    const handleUploadedImageDelete = async (imageId: string) => {
+        try {
+            await assetsApi.deleteAsset(imageId);
 
-        setUploadedImages((currentImages) =>
-            currentImages.filter((image) => image.id !== imageId),
-        );
+            setUploadedImages((currentImages) =>
+                currentImages.filter((image) => image.id !== imageId),
+            );
+
+            applySceneChange({
+                ...scene,
+                objects: scene.objects.filter((object) => {
+                    if (object.type !== 'image') {
+                        return true;
+                    }
+
+                    return object.assetId !== imageId;
+                }),
+            });
+
+            setSelectedObjectIds((currentIds) =>
+                currentIds.filter((id) => {
+                    const selectedObject = scene.objects.find(
+                        (object) => object.id === id,
+                    );
+
+                    if (!selectedObject || selectedObject.type !== 'image') {
+                        return true;
+                    }
+
+                    return selectedObject.assetId !== imageId;
+                }),
+            );
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleUploadedImagePlace = async (
+        image: EditorUploadedImage,
+        dropPoint?: { x: number; y: number },
+    ) => {
+        if (!project) {
+            return;
+        }
+
+        const imageObject = await createImageObject({
+            upload: image,
+            canvasWidth: project.canvasWidth,
+            canvasHeight: project.canvasHeight,
+            dropPoint,
+        });
 
         applySceneChange({
             ...scene,
-            objects: scene.objects.filter((object) => {
-                if (object.type !== 'image') {
-                    return true;
-                }
-
-                return object.assetId !== imageId;
-            }),
+            objects: [...scene.objects, imageObject],
         });
 
-        setSelectedObjectIds((currentIds) =>
-            currentIds.filter((id) => {
-                const selectedObject = scene.objects.find(
-                    (object) => object.id === id,
-                );
+        setSelectedObjectIds([imageObject.id]);
+        setActiveOption(null);
+    };
 
-                if (!selectedObject || selectedObject.type !== 'image') {
-                    return true;
+    const handleSelectedImageFiltersChange = (
+        filters: EditorImageFilterValues,
+    ) => {
+        if (!selectedObjectId) {
+            return;
+        }
+
+        applySceneChange({
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (
+                    object.id !== selectedObjectId ||
+                    object.type !== 'image' ||
+                    object.locked
+                ) {
+                    return object;
                 }
 
-                return selectedObject.assetId !== imageId;
+                return {
+                    ...object,
+                    filters,
+                };
             }),
-        );
-    } catch (err) {
-        console.error(err);
-    }
-};
+        });
+    };
 
-const handleUploadedImagePlace = async (
-    image: EditorUploadedImage,
-    dropPoint?: { x: number; y: number },
-) => {
-    if (!project) {
-        return;
-    }
+    const handleSelectedTextChange = (changes: Partial<EditorTextObject>) => {
+        applySceneChange(updateSelectedTextObject(changes));
+    };
 
-    const imageObject = await createImageObject({
-        upload: image,
-        canvasWidth: project.canvasWidth,
-        canvasHeight: project.canvasHeight,
-        dropPoint,
-    });
+    const handleSelectedTextColorChangeStart = () => {
+        startSceneTransaction();
+    };
 
-    applySceneChange({
-        ...scene,
-        objects: [...scene.objects, imageObject],
-    });
+    const handleSelectedTextColorPreview = (color: string) => {
+        previewScene(updateSelectedTextObject({ color }));
+    };
 
-    setSelectedObjectIds([imageObject.id]);
-    setActiveOption(null);
-};
+    const handleSelectedTextColorCommit = (color: string) => {
+        previewScene(updateSelectedTextObject({ color }));
+        commitSceneTransaction();
+        addRecentColor(color);
+    };
 
-const handleSelectedImageFiltersChange = (
-    filters: EditorImageFilterValues,
-) => {
-    if (!selectedObjectId) {
-        return;
-    }
+    const updateSelectedTextObject = (
+        changes: Partial<EditorTextObject>,
+    ): EditorScene => {
+        if (!selectedObjectId) {
+            return scene;
+        }
 
-    applySceneChange({
-        ...scene,
-        objects: scene.objects.map((object) => {
-            if (
-                object.id !== selectedObjectId ||
-                object.type !== 'image' ||
-                object.locked
-            ) {
-                return object;
-            }
+        return {
+            ...scene,
+            objects: scene.objects.map((object) => {
+                if (
+                    object.id !== selectedObjectId ||
+                    object.type !== 'text' ||
+                    object.locked
+                ) {
+                    return object;
+                }
 
-            return {
-                ...object,
-                filters,
-            };
-        }),
-    });
-};
+                return {
+                    ...object,
+                    ...changes,
+                };
+            }),
+        };
+    };
 
     const handleSelectedObjectDelete = () => {
         if (selectedObjectIds.length === 0) {
@@ -603,7 +657,33 @@ const handleSelectedImageFiltersChange = (
         }));
     };
 
+    const handleTextAdd = () => {
+        if (!project) {
+            return;
+        }
+
+        const textObject = createTextObject({
+            preset: 'paragraph',
+            canvasWidth: project.canvasWidth,
+            canvasHeight: project.canvasHeight,
+        });
+
+        applySceneChange({
+            ...scene,
+            objects: [...scene.objects, textObject],
+        });
+
+        setSelectedObjectIds([textObject.id]);
+        setActivePanel(null);
+        setActiveOption(null);
+    };
+
     const handlePanelChange = (nextPanel: EditorPanel) => {
+        if (nextPanel === 'text') {
+            handleTextAdd();
+            return;
+        }
+
         setActivePanel(nextPanel);
         setActiveOption(null);
     };
@@ -686,7 +766,6 @@ const handleSelectedImageFiltersChange = (
     return (
         <>
             <EditorLayout
-
                 uploadedImages={uploadedImages}
                 isUploadingImages={isUploadingImages}
                 onImagesUpload={handleImagesUpload}
@@ -732,6 +811,12 @@ const handleSelectedImageFiltersChange = (
                 onSelectedObjectDuplicate={handleSelectedObjectDuplicate}
                 onSelectedObjectLockToggle={handleSelectedObjectLockToggle}
                 onSelectedObjectDelete={handleSelectedObjectDelete}
+                onSelectedTextChange={handleSelectedTextChange}
+                onSelectedTextColorChangeStart={
+                    handleSelectedTextColorChangeStart
+                }
+                onSelectedTextColorPreview={handleSelectedTextColorPreview}
+                onSelectedTextColorCommit={handleSelectedTextColorCommit}
             />
 
             <CreateProjectModal

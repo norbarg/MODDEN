@@ -5,8 +5,10 @@ import type {
     EditorScene,
     EditorSceneObject,
 } from '../../features/editor/model/editorTypes';
-import { EditorColorPicker } from '../../features/editor/ui/color-picker';
 import { EditorImageFilters } from '../../features/editor/ui/image-filters';
+import type { EditorTextObject } from '../../features/editor/model/editorTypes';
+import { EditorTextToolbar } from '../../features/editor/ui/text-toolbar';
+import { EditorColorPicker } from '../../features/editor/ui/color-picker';
 import './EditorSubHeader.css';
 
 import duplicateIcon from '../../assets/editor-subheader/duplicate.svg';
@@ -29,6 +31,10 @@ type EditorSubHeaderProps = {
     onSelectedObjectLockToggle: () => void;
     onSelectedObjectDelete: () => void;
     selectedObjects: EditorSceneObject[];
+    onSelectedTextChange: (changes: Partial<EditorTextObject>) => void;
+    onSelectedTextColorChangeStart: () => void;
+    onSelectedTextColorPreview: (color: string) => void;
+    onSelectedTextColorCommit: (color: string) => void;
 };
 
 export function EditorSubHeader({
@@ -45,6 +51,10 @@ export function EditorSubHeader({
     onSelectedObjectLockToggle,
     onSelectedObjectDelete,
     selectedObjects,
+    onSelectedTextChange,
+    onSelectedTextColorChangeStart,
+    onSelectedTextColorPreview,
+    onSelectedTextColorCommit,
 }: EditorSubHeaderProps) {
     const hasSelectedObjects = selectedObjects.length > 0;
 
@@ -85,13 +95,24 @@ export function EditorSubHeader({
         (object) => object.locked,
     );
 
+    const selectedTextObject =
+        selectedObjects.length === 1 && firstSelectedObject?.type === 'text'
+            ? firstSelectedObject
+            : null;
+
+    const isSingleTextSelected = Boolean(selectedTextObject);
+
     const selectedColorObjects = selectedObjects.filter(
-        (object) => object.type === 'shape' || object.type === 'draw',
+        (object) =>
+            object.type === 'shape' ||
+            object.type === 'draw' ||
+            object.type === 'text',
     );
 
     const canChangeColor =
         selectedColorObjects.length > 0 &&
-        selectedColorObjects.length === selectedObjects.length;
+        selectedColorObjects.length === selectedObjects.length &&
+        !isSingleTextSelected;
 
     const currentColor = canChangeColor
         ? selectedColorObjects[0].color
@@ -146,6 +167,16 @@ export function EditorSubHeader({
                     selectedObject={selectedImageObject}
                     isDisabled={areAllSelectedObjectsLocked}
                     onFiltersChange={onSelectedImageFiltersChange}
+                />
+            ) : isSingleTextSelected && selectedTextObject ? (
+                <EditorTextToolbar
+                    selectedTextObject={selectedTextObject}
+                    recentColors={recentCanvasColors}
+                    isDisabled={areAllSelectedObjectsLocked}
+                    onTextChange={onSelectedTextChange}
+                    onTextColorChangeStart={onSelectedTextColorChangeStart}
+                    onTextColorPreview={onSelectedTextColorPreview}
+                    onTextColorCommit={onSelectedTextColorCommit}
                 />
             ) : null}
 

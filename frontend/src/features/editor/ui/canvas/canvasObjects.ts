@@ -6,6 +6,7 @@ import {
     Path,
     Polygon,
     Rect,
+    Textbox,
     Triangle,
     controlsUtils,
     filters,
@@ -17,6 +18,7 @@ import type {
     EditorImageObject,
     EditorSceneObject,
     EditorShapeObject,
+    EditorTextObject,
 } from '../../model/editorTypes';
 
 export type EditorCanvasObject = FabricObject & {
@@ -345,6 +347,36 @@ async function createImageCanvasObject(
     return applyEditorMeta(image, object);
 }
 
+async function createTextCanvasObject(
+    object: EditorTextObject,
+): Promise<EditorCanvasObject> {
+    if (typeof document !== 'undefined' && document.fonts) {
+        await document.fonts.load(
+            `${object.fontWeight} ${object.fontSize}px "${object.fontFamily}"`,
+        );
+    }
+    const canvasObject = new Textbox(object.text, {
+        left: object.x + object.width / 2,
+        top: object.y + object.height / 2,
+        originX: 'center',
+        originY: 'center',
+
+        width: object.width,
+
+        fontFamily: object.fontFamily,
+        fontWeight: object.fontWeight,
+        fontSize: object.fontSize,
+        fill: object.color,
+
+        angle: object.rotation,
+        textAlign: 'center',
+        objectCaching: false,
+        editable: !object.locked,
+    });
+
+    return applyEditorMeta(canvasObject, object);
+}
+
 export async function createCanvasObject(
     object: EditorSceneObject,
 ): Promise<EditorCanvasObject> {
@@ -354,6 +386,10 @@ export async function createCanvasObject(
 
     if (object.type === 'image') {
         return createImageCanvasObject(object);
+    }
+
+    if (object.type === 'text') {
+        return createTextCanvasObject(object);
     }
 
     return createShapeCanvasObject(object);

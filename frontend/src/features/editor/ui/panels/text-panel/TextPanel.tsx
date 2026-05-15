@@ -1,3 +1,4 @@
+// src/features/editor/ui/panels/text-panel/TextPanel.tsx
 import type { EditorOption } from '../../../model/editorTypes';
 import '../tools-panel/ToolsPanel.css';
 

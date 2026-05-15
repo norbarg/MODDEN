@@ -132,6 +132,13 @@ function restoreCanvasSelection(canvas: Canvas, selectedObjectIds: string[]) {
     }
 }
 
+type EditableTextCanvasObject = FabricObject & {
+    text?: string;
+    enterEditing?: () => void;
+    selectAll?: () => void;
+    hiddenTextarea?: HTMLTextAreaElement | null;
+};
+
 function preloadImage(src: string) {
     return new Promise<void>((resolve) => {
         const image = new Image();
@@ -365,16 +372,54 @@ export function useCanvasScene({
             latestOnSceneCommitRef.current(nextScene);
         };
 
+        const handleTextEditingExited = (event: { target?: FabricObject }) => {
+            if (!event.target) {
+                return;
+            }
+
+            const objectId = getEditorObjectId(event.target);
+
+            if (!objectId) {
+                return;
+            }
+
+            const textValue =
+                (event.target as EditableTextCanvasObject).text ?? '';
+
+            const nextScene: EditorScene = {
+                ...latestSceneRef.current,
+                objects: latestSceneRef.current.objects.map((object) => {
+                    if (object.id !== objectId || object.type !== 'text') {
+                        return object;
+                    }
+
+                    if (object.locked) {
+                        return object;
+                    }
+
+                    return {
+                        ...object,
+                        text: textValue,
+                    };
+                }),
+            };
+
+            latestSceneRef.current = nextScene;
+            latestOnSceneCommitRef.current(nextScene);
+        };
+
         canvas.on('selection:created', handleSelectionChange);
         canvas.on('selection:updated', handleSelectionChange);
         canvas.on('selection:cleared', handleSelectionCleared);
         canvas.on('object:modified', handleObjectModified);
+        canvas.on('text:editing:exited', handleTextEditingExited);
 
         return () => {
             canvas.off('selection:created', handleSelectionChange);
             canvas.off('selection:updated', handleSelectionChange);
             canvas.off('selection:cleared', handleSelectionCleared);
             canvas.off('object:modified', handleObjectModified);
+            canvas.off('text:editing:exited', handleTextEditingExited);
 
             canvasInstanceRef.current = null;
             void canvas.dispose();
