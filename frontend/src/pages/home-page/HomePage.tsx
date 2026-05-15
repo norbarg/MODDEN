@@ -110,6 +110,13 @@ const SORT_LABELS: Record<SortMode, string> = {
     titleDesc: 'Title Z-A',
 };
 
+const SORT_OPTIONS: SortMode[] = [
+    'lastModified',
+    'oldest',
+    'titleAsc',
+    'titleDesc',
+];
+
 function getDisplayName(user: AuthUser | null) {
     if (!user?.username) {
         return 'Your';
@@ -140,6 +147,7 @@ export function HomePage() {
     const [projects, setProjects] = useState<WorkspaceProject[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortMode, setSortMode] = useState<SortMode>('lastModified');
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -395,35 +403,68 @@ export function HomePage() {
                                     }
                                 />
                             </label>
+                            <div
+    className={`workspace-sort ${isSortOpen ? 'workspace-sort--open' : ''}`}
+    onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setIsSortOpen(false);
+        }
+    }}
+>
+    <button
+        className="workspace-sort__button"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isSortOpen}
+        onClick={() => setIsSortOpen((isOpen) => !isOpen)}
+    >
+        <span className="workspace-sort__label">
+            {SORT_LABELS[sortMode]}
+        </span>
 
-                            <label className="workspace-sort">
-                                <span className="workspace-sort__label">
-                                    {SORT_LABELS[sortMode]}
-                                </span>
+        <img
+            className="workspace-sort__icon"
+            src={arrowDownIcon}
+            alt=""
+            aria-hidden="true"
+        />
+    </button>
 
-                                <img
-                                    className="workspace-sort__icon"
-                                    src={arrowDownIcon}
-                                    alt=""
-                                    aria-hidden="true"
-                                />
+    {isSortOpen && (
+        <div className="workspace-sort__menu" role="listbox">
+            {SORT_OPTIONS.map((option) => {
+                const isSelected = option === sortMode;
 
-                                <select
-                                    value={sortMode}
-                                    onChange={(event) =>
-                                        setSortMode(
-                                            event.target.value as SortMode,
-                                        )
-                                    }
-                                >
-                                    <option value="lastModified">
-                                        Last Modified
-                                    </option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="titleAsc">Title A-Z</option>
-                                    <option value="titleDesc">Title Z-A</option>
-                                </select>
-                            </label>
+                return (
+                    <button
+                        key={option}
+                        className={`workspace-sort__option ${
+                            isSelected ? 'workspace-sort__option--active' : ''
+                        }`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                            setSortMode(option);
+                            setIsSortOpen(false);
+                        }}
+                    >
+                        <span>{SORT_LABELS[option]}</span>
+
+                        {isSelected && (
+                            <span
+                                className="workspace-sort__check"
+                                aria-hidden="true"
+                            >
+                                ●
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    )}
+</div>
                         </div>
                     </div>
 

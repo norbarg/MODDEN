@@ -72,34 +72,8 @@
     color: #6e8791;
 }
 
-.templates-page__filter {
-    position: relative;
-    min-width: 132px;
-    height: 40px;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #243244;
-    font-size: 11px;
-    font-weight: 600;
-    box-shadow: 3px 12px 26px rgba(0, 0, 0, 0.25);
-    box-sizing: border-box;
-}
-
 .templates-page__filter span {
     white-space: nowrap;
-}
-
-.templates-page__filter-icon {
-    width: 10px;
-    height: 10px;
-    display: block;
-    object-fit: contain;
-    flex: 0 0 auto;
 }
 
 .templates-page__filter select {
@@ -189,5 +163,175 @@
         width: 100%;
         max-width: 300px;
         height: 300px;
+    }
+}
+
+.templates-page__filter {
+    position: relative;
+    min-width: 132px;
+    height: 40px;
+    z-index: 20;
+
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.templates-page__filter-button {
+    width: 155px;
+    height: 40px;
+    padding: 0 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    border: 0;
+    border-radius: 999px;
+    background: #ffffff;
+
+    color: #243244;
+    font-family: 'Graphik';
+    font-size: 12px;
+    font-weight: 500;
+
+    cursor: pointer;
+    outline: none;
+    box-shadow: 3px 12px 26px rgba(0, 0, 0, 0.25);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.templates-page__filter-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 3px 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.templates-page__filter-label {
+    white-space: nowrap;
+    padding: 0 4px 0 0;
+}
+
+.templates-page__filter-icon {
+    width: 10px;
+    height: 10px;
+    display: block;
+    object-fit: contain;
+    flex: 0 0 auto;
+
+    transition: transform 0.18s ease;
+}
+
+.templates-page__filter--open .templates-page__filter-icon {
+    transform: rotate(180deg);
+}
+
+.templates-page__filter-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: -8px;
+    z-index: 50;
+
+    width: 185px;
+    max-height: 230px;
+    padding: 6px 12px 6px 6px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+
+    overflow-y: auto;
+
+    animation: templates-filter-menu-show 0.18s ease forwards;
+    transform-origin: top right;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(112, 141, 150, 0.45) transparent;
+
+    clip-path: inset(0 round 18px);
+    overflow-x: hidden;
+}
+
+.templates-page__filter-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.templates-page__filter-menu::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 30px 0;
+}
+
+.templates-page__filter-menu::-webkit-scrollbar-thumb {
+    min-height: 10px;
+    border-radius: 999px;
+    background: rgba(112, 141, 150, 0.45);
+}
+
+.templates-page__filter-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(112, 141, 150, 0.6);
+}
+
+.templates-page__filter-option {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 10px;
+
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    color: rgba(0, 0, 0, 0.82);
+    font-family: 'Graphik';
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.templates-page__filter-option:hover {
+    background: #f1f4f5;
+    color: #000000;
+    transform: translateX(2px);
+}
+
+.templates-page__filter-option--active {
+    background: #eef3f4;
+    color: #000000;
+}
+
+.templates-page__filter-check {
+    color: #ff4b1f;
+    font-size: 14px;
+    line-height: 1;
+}
+
+@keyframes templates-filter-menu-show {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

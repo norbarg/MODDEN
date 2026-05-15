@@ -92,6 +92,7 @@ export function TemplatesPage() {
     const [templates, setTemplates] = useState<WorkspaceTemplate[]>([]);
     const [activeFilter, setActiveFilter] =
         useState<TemplateFilter>(initialFilter);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
@@ -305,32 +306,72 @@ export function TemplatesPage() {
                             }
                         />
                     </label>
+                    <div
+    className={`templates-page__filter ${
+        isFilterOpen ? 'templates-page__filter--open' : ''
+    }`}
+    onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setIsFilterOpen(false);
+        }
+    }}
+>
+    <button
+        className="templates-page__filter-button"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isFilterOpen}
+        onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
+    >
+        <span className="templates-page__filter-label">
+            {getFilterLabel(activeFilter)}
+        </span>
 
-                    <label className="templates-page__filter">
-                        <span>{getFilterLabel(activeFilter)}</span>
+        <img
+            src={arrowDownIcon}
+            alt=""
+            aria-hidden="true"
+            className="templates-page__filter-icon"
+        />
+    </button>
 
-                        <img
-                            src={arrowDownIcon}
-                            alt=""
-                            aria-hidden="true"
-                            className="templates-page__filter-icon"
-                        />
+    {isFilterOpen && (
+        <div className="templates-page__filter-menu" role="listbox">
+            {TEMPLATE_FILTERS.map((filter) => {
+                const isSelected = filter.value === activeFilter;
 
-                        <select
-                            value={activeFilter}
-                            onChange={(event) =>
-                                handleFilterChange(
-                                    event.target.value as TemplateFilter,
-                                )
-                            }
-                        >
-                            {TEMPLATE_FILTERS.map((filter) => (
-                                <option value={filter.value} key={filter.value}>
-                                    {filter.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                return (
+                    <button
+                        key={filter.value}
+                        className={`templates-page__filter-option ${
+                            isSelected
+                                ? 'templates-page__filter-option--active'
+                                : ''
+                        }`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                            handleFilterChange(filter.value);
+                            setIsFilterOpen(false);
+                        }}
+                    >
+                        <span>{filter.label}</span>
+
+                        {isSelected && (
+                            <span
+                                className="templates-page__filter-check"
+                                aria-hidden="true"
+                            >
+                                ●
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    )}
+</div>
                 </div>
             </section>
 
