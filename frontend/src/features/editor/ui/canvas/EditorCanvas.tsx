@@ -72,13 +72,8 @@ export function EditorCanvas({
 
     const activeDrawingTool = getActiveDrawingTool(activeOption);
 
-    const renderScene: EditorScene = {
-        ...scene,
-        objects: scene.objects,
-    };
-
     const { canvasInstanceRef } = useCanvasScene({
-        scene: renderScene,
+        scene,
         canvasWidth: project.canvasWidth,
         canvasHeight: project.canvasHeight,
         selectedObjectIds,

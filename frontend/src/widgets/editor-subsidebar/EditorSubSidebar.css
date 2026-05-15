@@ -16,9 +16,8 @@
 
 .editor-subsidebar--uploads {
     width: 325px;
-    height: 620px;
+    height: 502px;
     max-height: calc(100vh - 150px);
     padding: 26px 25px;
-
     overflow: hidden;
 }

@@ -1,9 +1,9 @@
 //src/shared/ui/project-card/ProjectCard.tsx
 import { useEffect, useRef, useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
 
 import editIcon from '../../../../assets/project-card/edit.svg';
 import deleteIcon from '../../../../assets/project-card/delete.svg';
+import moreIcon from '../../../../assets/project-card/more.svg';
 import type { WorkspaceProject } from '../../../../shared/types/workspace';
 import './ProjectCard.css';
 
@@ -165,7 +165,12 @@ export function ProjectCard({
                         aria-expanded={isMenuOpen}
                         onClick={() => setIsMenuOpen((current) => !current)}
                     >
-                        <MoreHorizontal size={22} />
+                        <img
+                            className="project-card__menu-icon"
+                            src={moreIcon}
+                            alt=""
+                            aria-hidden="true"
+                        />
                     </button>
 
                     {isMenuOpen && (

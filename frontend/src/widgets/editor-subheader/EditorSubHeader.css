@@ -93,7 +93,6 @@
     top: 46px;
     right: -155px;
     background: #ffffff;
-    position: relative;
 }
 
 .editor-subheader--object .editor-color-picker-popover__hex-row {
@@ -151,7 +150,6 @@
     transform: translateX(-50%);
 }
 
-
 .editor-subheader__filter-row {
     display: flex;
     flex-direction: column;
@@ -179,10 +177,10 @@
 
     background: linear-gradient(
         to right,
-        #FF3D00 0%,
-        #FF3D00 var(--filter-progress),
-        #708D96 var(--filter-progress),
-        #708D96 100%
+        #ff3d00 0%,
+        #ff3d00 var(--filter-progress),
+        #708d96 var(--filter-progress),
+        #708d96 100%
     );
 }
 

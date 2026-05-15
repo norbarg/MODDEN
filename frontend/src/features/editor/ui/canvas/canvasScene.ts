@@ -132,6 +132,69 @@ function restoreCanvasSelection(canvas: Canvas, selectedObjectIds: string[]) {
     }
 }
 
+function preloadImage(src: string) {
+    return new Promise<void>((resolve) => {
+        const image = new Image();
+
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+
+        image.src = src;
+    });
+}
+
+function preloadSceneImages(scene: EditorScene) {
+    const imageSources = scene.objects
+        .filter((object) => object.type === 'image')
+        .map((object) => object.src);
+
+    if (imageSources.length === 0) {
+        return Promise.resolve();
+    }
+
+    return Promise.all(imageSources.map(preloadImage)).then(() => undefined);
+}
+
+function getAppendedObject(
+    previousScene: EditorScene | null,
+    nextScene: EditorScene,
+) {
+    if (!previousScene) {
+        return null;
+    }
+
+    if (previousScene.background.color !== nextScene.background.color) {
+        return null;
+    }
+
+    if (nextScene.objects.length !== previousScene.objects.length + 1) {
+        return null;
+    }
+
+    const previousObjectIds = new Set(
+        previousScene.objects.map((object) => object.id),
+    );
+
+    const appendedObject = nextScene.objects.find(
+        (object) => !previousObjectIds.has(object.id),
+    );
+
+    if (!appendedObject) {
+        return null;
+    }
+
+    const previousObjectsStillSame = previousScene.objects.every(
+        (previousObject, index) =>
+            nextScene.objects[index]?.id === previousObject.id,
+    );
+
+    if (!previousObjectsStillSame) {
+        return null;
+    }
+
+    return appendedObject;
+}
+
 type UseCanvasSceneParams = {
     scene: EditorScene;
     canvasWidth: number;
@@ -156,6 +219,16 @@ export function useCanvasScene({
     const canvasInstanceRef = useRef<Canvas | null>(null);
     const latestSceneRef = useRef(scene);
     const latestSelectedObjectIdsRef = useRef(selectedObjectIds);
+    const latestIsInteractionDisabledRef = useRef(isInteractionDisabled);
+    const latestOnObjectSelectRef = useRef(onObjectSelect);
+    const latestOnSceneCommitRef = useRef(onSceneCommit);
+    const isProgrammaticCanvasUpdateRef = useRef(false);
+
+    const renderedSceneRef = useRef<EditorScene | null>(null);
+    const renderedCanvasSizeRef = useRef({
+        width: canvasWidth,
+        height: canvasHeight,
+    });
 
     useEffect(() => {
         latestSelectedObjectIdsRef.current = selectedObjectIds;
@@ -164,6 +237,36 @@ export function useCanvasScene({
     useEffect(() => {
         latestSceneRef.current = scene;
     }, [scene]);
+
+    useEffect(() => {
+        latestOnObjectSelectRef.current = onObjectSelect;
+    }, [onObjectSelect]);
+
+    useEffect(() => {
+        latestOnSceneCommitRef.current = onSceneCommit;
+    }, [onSceneCommit]);
+
+    useEffect(() => {
+        latestIsInteractionDisabledRef.current = isInteractionDisabled;
+
+        const canvas = canvasInstanceRef.current;
+
+        if (!canvas) {
+            return;
+        }
+
+        canvas.selection = !isInteractionDisabled;
+        canvas.skipTargetFind = isInteractionDisabled;
+
+        canvas.getObjects().forEach((object) => {
+            object.set({
+                selectable: !isInteractionDisabled,
+                evented: !isInteractionDisabled,
+            });
+        });
+
+        canvas.requestRenderAll();
+    }, [isInteractionDisabled]);
 
     useEffect(() => {
         const canvasElement = canvasElementRef.current;
@@ -193,10 +296,14 @@ export function useCanvasScene({
             }
 
             latestSelectedObjectIdsRef.current = objectIds;
-            onObjectSelect(objectIds);
+            latestOnObjectSelectRef.current(objectIds);
         };
 
         const handleSelectionChange = () => {
+            if (isProgrammaticCanvasUpdateRef.current) {
+                return;
+            }
+
             const activeObject = canvas.getActiveObject();
 
             if (!activeObject) {
@@ -225,6 +332,10 @@ export function useCanvasScene({
         };
 
         const handleSelectionCleared = () => {
+            if (isProgrammaticCanvasUpdateRef.current) {
+                return;
+            }
+
             emitSelectedObjectIds([]);
         };
 
@@ -251,7 +362,7 @@ export function useCanvasScene({
 
             latestSceneRef.current = nextScene;
 
-            onSceneCommit(nextScene);
+            latestOnSceneCommitRef.current(nextScene);
         };
 
         canvas.on('selection:created', handleSelectionChange);
@@ -268,71 +379,129 @@ export function useCanvasScene({
             canvasInstanceRef.current = null;
             void canvas.dispose();
         };
-    }, [
-        canvasElementRef,
-        canvasHeight,
-        canvasWidth,
-        onObjectSelect,
-        onSceneCommit,
-        scene.background.color,
-    ]);
+    }, [canvasElementRef]);
 
-useEffect(() => {
-    const canvas = canvasInstanceRef.current;
+    useEffect(() => {
+        const canvas = canvasInstanceRef.current;
 
-    if (!canvas) {
-        return;
-    }
-
-    canvas.setDimensions({
-        width: canvasWidth,
-        height: canvasHeight,
-    });
-
-    canvas.selection = !isInteractionDisabled;
-    canvas.skipTargetFind = isInteractionDisabled;
-
-    let isCancelled = false;
-
-    // void Promise.all(
-    //     scene.objects.map((object) => createCanvasObject(object)),
-    // ).then((canvasObjects) => {
-    void Promise.allSettled(
-    scene.objects.map((object) => createCanvasObject(object)),
-).then((results) => {
-    const canvasObjects = results
-        .filter((result) => result.status === 'fulfilled')
-        .map((result) => result.value);
-
-    if (isCancelled) {
-        return;
-    }
-        if (isCancelled) {
+        if (!canvas) {
             return;
         }
 
-        canvas.clear();
-        canvas.backgroundColor = scene.background.color;
+        const currentCanvas = canvas;
+        let isCancelled = false;
 
-        canvasObjects.forEach((object) => {
-            object.set({
-                selectable: !isInteractionDisabled,
-                evented: !isInteractionDisabled,
+        const previousRenderedScene = renderedSceneRef.current;
+        const previousCanvasSize = renderedCanvasSizeRef.current;
+
+        const appendedObject = getAppendedObject(previousRenderedScene, scene);
+
+        const canRenderOnlyAppendedObject =
+            appendedObject &&
+            previousCanvasSize.width === canvasWidth &&
+            previousCanvasSize.height === canvasHeight;
+
+        async function renderScene() {
+            const shouldDisableInteraction =
+                latestIsInteractionDisabledRef.current;
+
+            if (canRenderOnlyAppendedObject && appendedObject) {
+                const canvasObject = await createCanvasObject(appendedObject);
+
+                if (isCancelled) {
+                    return;
+                }
+
+                canvasObject.set({
+                    selectable: !shouldDisableInteraction,
+                    evented: !shouldDisableInteraction,
+                });
+
+                currentCanvas.add(canvasObject);
+
+                renderedSceneRef.current = scene;
+                renderedCanvasSizeRef.current = {
+                    width: canvasWidth,
+                    height: canvasHeight,
+                };
+
+                isProgrammaticCanvasUpdateRef.current = true;
+
+                try {
+                    restoreCanvasSelection(
+                        currentCanvas,
+                        latestSelectedObjectIdsRef.current,
+                    );
+                } finally {
+                    isProgrammaticCanvasUpdateRef.current = false;
+                }
+
+                currentCanvas.requestRenderAll();
+                return;
+            }
+
+            await preloadSceneImages(scene);
+
+            if (isCancelled) {
+                return;
+            }
+
+            const canvasObjects = await Promise.all(
+                scene.objects.map((object) => createCanvasObject(object)),
+            );
+
+            if (isCancelled) {
+                return;
+            }
+
+            currentCanvas.setDimensions({
+                width: canvasWidth,
+                height: canvasHeight,
             });
-        });
 
-        canvasObjects.forEach((object) => {
-            canvas.add(object);
-        });
+            currentCanvas.backgroundColor = scene.background.color;
 
-        restoreCanvasSelection(canvas, latestSelectedObjectIdsRef.current);
-        canvas.requestRenderAll();
-    });
+            isProgrammaticCanvasUpdateRef.current = true;
 
-    return () => {
-        isCancelled = true;
-    };
-}, [scene, canvasWidth, canvasHeight, isInteractionDisabled]);
+            try {
+                currentCanvas.clear();
+
+                currentCanvas.selection = !shouldDisableInteraction;
+                currentCanvas.skipTargetFind = shouldDisableInteraction;
+
+                canvasObjects.forEach((object) => {
+                    object.set({
+                        selectable: !shouldDisableInteraction,
+                        evented: !shouldDisableInteraction,
+                    });
+                });
+
+                canvasObjects.forEach((object) => {
+                    currentCanvas.add(object);
+                });
+
+                renderedSceneRef.current = scene;
+                renderedCanvasSizeRef.current = {
+                    width: canvasWidth,
+                    height: canvasHeight,
+                };
+
+                restoreCanvasSelection(
+                    currentCanvas,
+                    latestSelectedObjectIdsRef.current,
+                );
+            } finally {
+                isProgrammaticCanvasUpdateRef.current = false;
+            }
+
+            currentCanvas.requestRenderAll();
+        }
+        void renderScene();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [scene, canvasWidth, canvasHeight]);
 
     useEffect(() => {
         const canvas = canvasInstanceRef.current;

@@ -112,10 +112,14 @@ export async function apiRequest<T>(
 
     const accessToken = authStorage.getAccessToken();
 
+    const isFormDataBody =
+        typeof FormData !== 'undefined' &&
+        requestOptions.body instanceof FormData;
+
     const response = await fetch(`${API_URL}${url}`, {
         ...requestOptions,
         headers: {
-            'Content-Type': 'application/json',
+            ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
             ...(auth && accessToken
                 ? { Authorization: `Bearer ${accessToken}` }
                 : {}),

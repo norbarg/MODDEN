@@ -1,7 +1,4 @@
-// src/shared/api/assetsApi.ts
-import { authStorage } from '../auth/authStorage';
-
-const API_URL = '/api';
+import { apiRequest } from './apiClient';
 
 export type UploadedAsset = {
     id: string;
@@ -15,64 +12,29 @@ type UploadAssetResponse = {
     asset: UploadedAsset;
 };
 
-async function parseResponse<T>(response: Response): Promise<T> {
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-        const message =
-            data?.message || data?.error || 'Something went wrong';
-
-        throw new Error(Array.isArray(message) ? message.join(', ') : message);
-    }
-
-    return data as T;
-}
-
-function getAuthHeaders() {
-    const accessToken = authStorage.getAccessToken();
-
-    return accessToken
-        ? {
-              Authorization: `Bearer ${accessToken}`,
-          }
-        : {};
-}
-
 export const assetsApi = {
-    async getMyAssets() {
-        const response = await fetch(`${API_URL}/assets/me`, {
+    getMyAssets() {
+        return apiRequest<UploadedAsset[]>('/assets/me', {
             method: 'GET',
-            headers: {
-                ...getAuthHeaders(),
-            },
+            auth: true,
         });
-
-        return parseResponse<UploadedAsset[]>(response);
     },
 
-    async uploadAsset(file: File) {
+    uploadAsset(file: File) {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(`${API_URL}/assets/upload`, {
+        return apiRequest<UploadAssetResponse>('/assets/upload', {
             method: 'POST',
-            headers: {
-                ...getAuthHeaders(),
-            },
+            auth: true,
             body: formData,
         });
-
-        return parseResponse<UploadAssetResponse>(response);
     },
 
-    async deleteAsset(assetId: string) {
-        const response = await fetch(`${API_URL}/assets/${assetId}`, {
+    deleteAsset(assetId: string) {
+        return apiRequest<{ message: string }>(`/assets/${assetId}`, {
             method: 'DELETE',
-            headers: {
-                ...getAuthHeaders(),
-            },
+            auth: true,
         });
-
-        return parseResponse<{ message: string }>(response);
     },
 };
