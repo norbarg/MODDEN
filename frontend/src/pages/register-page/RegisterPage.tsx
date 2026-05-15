@@ -9,6 +9,7 @@ import logoWhite from '../../assets/modden-logo-white.svg';
 import logoOrange from '../../assets/modden-logo-orange.svg';
 import authBg from '../../assets/auth-bg-register.svg';
 import './RegisterPage.css';
+import { AuthBackLink } from '../../features/auth/ui/auth-back-link';
 
 type RegisterStep = 'form' | 'waiting-verification';
 
@@ -130,10 +131,12 @@ export function RegisterPage() {
 
     return (
         <main
-            className="auth-page auth-page--transition"
-            style={{ backgroundImage: `url(${authBg})` }}
-        >
-            <section className="auth-page__brand">
+    className="auth-page auth-page--transition"
+    style={{ backgroundImage: `url(${authBg})` }}
+>
+    <AuthBackLink />
+
+    <section className="auth-page__brand">
                 <img
                     src={logoWhite}
                     alt="MODDEN"

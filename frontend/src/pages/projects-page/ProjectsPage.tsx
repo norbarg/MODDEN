@@ -23,6 +23,13 @@ const SORT_LABELS: Record<SortMode, string> = {
     titleDesc: 'Title Z-A',
 };
 
+const SORT_OPTIONS: SortMode[] = [
+    'lastModified',
+    'oldest',
+    'titleAsc',
+    'titleDesc',
+];
+
 function formatCategory(category: WorkspaceProject['category']) {
     return category
         .toLowerCase()
@@ -42,6 +49,7 @@ export function ProjectsPage() {
     const [projects, setProjects] = useState<WorkspaceProject[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortMode, setSortMode] = useState<SortMode>('lastModified');
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     const [editingProject, setEditingProject] =
@@ -199,29 +207,72 @@ export function ProjectsPage() {
                             }
                         />
                     </label>
+                    <div
+    className={`projects-page__sort ${
+        isSortOpen ? 'projects-page__sort--open' : ''
+    }`}
+    onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setIsSortOpen(false);
+        }
+    }}
+>
+    <button
+        className="projects-page__sort-button"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isSortOpen}
+        onClick={() => setIsSortOpen((isOpen) => !isOpen)}
+    >
+        <span className="projects-page__sort-label">
+            {SORT_LABELS[sortMode]}
+        </span>
 
-                    <label className="projects-page__sort">
-                        <span>{SORT_LABELS[sortMode]}</span>
+        <img
+            src={arrowDownIcon}
+            alt=""
+            aria-hidden="true"
+            className="projects-page__sort-icon"
+        />
+    </button>
 
-                        <img
-                            src={arrowDownIcon}
-                            alt=""
-                            aria-hidden="true"
-                            className="projects-page__sort-icon"
-                        />
+    {isSortOpen && (
+        <div className="projects-page__sort-menu" role="listbox">
+            {SORT_OPTIONS.map((option) => {
+                const isSelected = option === sortMode;
 
-                        <select
-                            value={sortMode}
-                            onChange={(event) =>
-                                setSortMode(event.target.value as SortMode)
-                            }
-                        >
-                            <option value="lastModified">Last Modified</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="titleAsc">Title A-Z</option>
-                            <option value="titleDesc">Title Z-A</option>
-                        </select>
-                    </label>
+                return (
+                    <button
+                        key={option}
+                        className={`projects-page__sort-option ${
+                            isSelected
+                                ? 'projects-page__sort-option--active'
+                                : ''
+                        }`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                            setSortMode(option);
+                            setIsSortOpen(false);
+                        }}
+                    >
+                        <span>{SORT_LABELS[option]}</span>
+
+                        {isSelected && (
+                            <span
+                                className="projects-page__sort-check"
+                                aria-hidden="true"
+                            >
+                                ●
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    )}
+</div>
                 </div>
             </section>
 

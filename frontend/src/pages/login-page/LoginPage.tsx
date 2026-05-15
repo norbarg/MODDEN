@@ -8,6 +8,7 @@ import { ROUTES } from '../../shared/routes/routes';
 import logoWhite from '../../assets/modden-logo-white.svg';
 import logoOrange from '../../assets/modden-logo-orange.svg';
 import authBg from '../../assets/auth-bg-login.svg';
+import { AuthBackLink } from '../../features/auth/ui/auth-back-link';
 import './LoginPage.css';
 
 export function LoginPage() {
@@ -82,10 +83,12 @@ export function LoginPage() {
 
     return (
         <main
-            className="auth-page auth-page--transition"
-            style={{ backgroundImage: `url(${authBg})` }}
-        >
-            <section className="auth-page__brand">
+    className="auth-page auth-page--transition"
+    style={{ backgroundImage: `url(${authBg})` }}
+>
+    <AuthBackLink />
+
+    <section className="auth-page__brand">
                 <img
                     src={logoWhite}
                     alt="MODDEN"
