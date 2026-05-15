@@ -1,6 +1,7 @@
 // src/features/editor/ui/duplicate/editorObjectActions.ts
 import type {
     EditorDrawObject,
+    EditorImageObject,
     EditorScene,
     EditorSceneObject,
     EditorShapeObject,
@@ -21,10 +22,21 @@ function duplicateDrawObject(object: EditorDrawObject): EditorDrawObject {
         locked: false,
     };
 }
+
 function duplicateShapeObject(object: EditorShapeObject): EditorShapeObject {
     return {
         ...object,
         id: createObjectId('shape'),
+        x: object.x + DUPLICATE_OFFSET,
+        y: object.y + DUPLICATE_OFFSET,
+        locked: false,
+    };
+}
+
+function duplicateImageObject(object: EditorImageObject): EditorImageObject {
+    return {
+        ...object,
+        id: createObjectId('image'),
         x: object.x + DUPLICATE_OFFSET,
         y: object.y + DUPLICATE_OFFSET,
         locked: false,
@@ -57,6 +69,8 @@ export function duplicateEditorObject(
         duplicatedObject = duplicateDrawObject(object);
     } else if (object.type === 'shape') {
         duplicatedObject = duplicateShapeObject(object);
+    } else if (object.type === 'image') {
+        duplicatedObject = duplicateImageObject(object);
     } else {
         return {
             scene,

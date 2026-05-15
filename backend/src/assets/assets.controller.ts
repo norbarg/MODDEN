@@ -1,4 +1,6 @@
+// src/assets/assets.controller.ts
 import {
+  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -7,20 +9,27 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AssetsService } from './assets.service';
 
+const ASSETS_UPLOAD_DIR = join(process.cwd(), 'uploads', 'assets');
+
+function ensureAssetsUploadDir() {
+  mkdirSync(ASSETS_UPLOAD_DIR, { recursive: true });
+}
+
 function generateFileName(originalName: string): string {
   const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-  const extension = extname(originalName);
-  return `${uniqueSuffix}${extension}`;
+  const extension = extname(originalName).toLowerCase();
+
+  return `asset-${uniqueSuffix}${extension}`;
 }
 
 @ApiTags('Assets')
@@ -47,18 +56,20 @@ export class AssetsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: (_req, _file, callback) => {
+          ensureAssetsUploadDir();
+          callback(null, ASSETS_UPLOAD_DIR);
+        },
         filename: (_req, file, callback) => {
-          const fileName = generateFileName(file.originalname);
-          callback(null, fileName);
+          callback(null, generateFileName(file.originalname));
         },
       }),
       fileFilter: (_req, file, callback) => {
         const allowedMimeTypes = [
           'image/jpeg',
+          'image/jpg',
           'image/png',
           'image/webp',
-          'image/jpg',
         ];
 
         if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -86,9 +97,12 @@ export class AssetsController {
     }
 
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-    const fileUrl = `${backendUrl}/uploads/${file.filename}`;
+    const fileUrl = `${backendUrl}/uploads/assets/${file.filename}`;
 
-    const asset = await this.assetsService.create(user.userId, fileUrl);
+    const asset = await this.assetsService.create({
+      userId: user.userId,
+      fileUrl,
+    });
 
     return {
       message: 'Asset uploaded successfully',

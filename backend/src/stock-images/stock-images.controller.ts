@@ -1,3 +1,4 @@
+//src/stock-images/stock-images.controller.ts
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SearchStockImagesDto } from './dto/search-stock-images.dto';

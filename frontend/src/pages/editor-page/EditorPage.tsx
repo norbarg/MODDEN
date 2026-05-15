@@ -5,6 +5,8 @@ import { projectsApi } from '../../shared/api/projectsApi';
 import { templatesApi } from '../../shared/api/templatesApi';
 import { ApiError } from '../../shared/api/apiClient';
 import { authStorage } from '../../shared/auth/authStorage';
+import { assetsApi } from '../../shared/api/assetsApi';
+import { createImageObject } from '../../features/editor/ui/panels/uploads-panel/canvasImage';
 import type {
     WorkspaceProject,
     WorkspaceTemplate,
@@ -26,6 +28,8 @@ import type {
     EditorOption,
     EditorPanel,
     EditorScene,
+    EditorImageFilterValues,
+    EditorUploadedImage,
 } from '../../features/editor/model/editorTypes';
 import { useEditorProjectSave } from '../../features/editor/model/useEditorProjectSave';
 import { useEditorKeyboardMove } from '../../features/editor/model/editorKeyboardMove';
@@ -39,8 +43,6 @@ import {
 import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-changes-modal';
 import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
 import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
-// import { toggleEditorObjectLock } from '../../features/editor/ui/lock/toggleEditorObjectLock';
-// import { deleteEditorObject } from '../../features/editor/ui/delete/deleteEditorObject';
 
 import './EditorPage.css';
 
@@ -55,6 +57,9 @@ export function EditorPage() {
 
     const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
 
+    const [uploadedImages, setUploadedImages] = useState<EditorUploadedImage[]>([]);
+    const [isUploadingImages, setIsUploadingImages] = useState(false);
+
     const selectedObjectId =
         selectedObjectIds.length === 1 ? selectedObjectIds[0] : null;
 
@@ -64,24 +69,27 @@ export function EditorPage() {
         }
 
         const selectedIds = new Set(selectedObjectIds);
+        return {
+    ...scene,
+    objects: scene.objects.map((object) => {
+        if (!selectedIds.has(object.id)) {
+            return object;
+        }
+
+        if (object.locked) {
+            return object;
+        }
+
+        if (object.type !== 'shape' && object.type !== 'draw') {
+            return object;
+        }
 
         return {
-            ...scene,
-            objects: scene.objects.map((object) => {
-                if (!selectedIds.has(object.id)) {
-                    return object;
-                }
-
-                if (object.locked) {
-                    return object;
-                }
-
-                return {
-                    ...object,
-                    color,
-                };
-            }),
+            ...object,
+            color,
         };
+    }),
+};
     };
 
     function areStringArraysEqual(first: string[], second: string[]) {
@@ -268,10 +276,11 @@ export function EditorPage() {
             try {
                 setIsLoading(true);
 
-                const [loadedProject, myTemplates] = await Promise.all([
-                    projectsApi.getProject(currentProjectId),
-                    templatesApi.getMyTemplates(),
-                ]);
+                const [loadedProject, myTemplates, myAssets] = await Promise.all([
+    projectsApi.getProject(currentProjectId),
+    templatesApi.getMyTemplates(),
+    assetsApi.getMyAssets(),
+]);
 
                 if (!isMounted) {
                     return;
@@ -290,6 +299,15 @@ export function EditorPage() {
 
                 setProject(loadedProject);
                 setLinkedTemplate(existingTemplate);
+
+                setUploadedImages(
+    myAssets.map((asset) => ({
+        id: asset.id,
+        src: asset.fileUrl,
+        fileName: asset.fileUrl.split('/').pop() ?? 'Uploaded image',
+    })),
+);
+
 
                 isRestoringDraftRef.current = true;
 
@@ -345,6 +363,132 @@ export function EditorPage() {
             isMounted = false;
         };
     }, [navigate, projectId, resetScene, restoreDraftHistory]);
+
+    const handleImagesUpload = async (files: File[]) => {
+    setIsUploadingImages(true);
+
+    try {
+        const uploadedAssets = await Promise.all(
+            files.map((file) => assetsApi.uploadAsset(file)),
+        );
+
+        const nextImages: EditorUploadedImage[] = uploadedAssets.map(
+            ({ asset }) => ({
+                id: asset.id,
+                src: asset.fileUrl,
+                fileName: asset.fileUrl.split('/').pop() ?? 'Uploaded image',
+            }),
+        );
+
+        setUploadedImages((currentImages) => [
+            ...nextImages,
+            ...currentImages,
+        ]);
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setIsUploadingImages(false);
+    }
+};
+
+// const handleUploadedImageDelete = async (imageId: string) => {
+//     try {
+//         await assetsApi.deleteAsset(imageId);
+
+//         setUploadedImages((currentImages) =>
+//             currentImages.filter((image) => image.id !== imageId),
+//         );
+//     } catch (err) {
+//         console.error(err);
+//     }
+// };
+
+const handleUploadedImageDelete = async (imageId: string) => {
+    try {
+        await assetsApi.deleteAsset(imageId);
+
+        setUploadedImages((currentImages) =>
+            currentImages.filter((image) => image.id !== imageId),
+        );
+
+        applySceneChange({
+            ...scene,
+            objects: scene.objects.filter((object) => {
+                if (object.type !== 'image') {
+                    return true;
+                }
+
+                return object.assetId !== imageId;
+            }),
+        });
+
+        setSelectedObjectIds((currentIds) =>
+            currentIds.filter((id) => {
+                const selectedObject = scene.objects.find(
+                    (object) => object.id === id,
+                );
+
+                if (!selectedObject || selectedObject.type !== 'image') {
+                    return true;
+                }
+
+                return selectedObject.assetId !== imageId;
+            }),
+        );
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+const handleUploadedImagePlace = async (
+    image: EditorUploadedImage,
+    dropPoint?: { x: number; y: number },
+) => {
+    if (!project) {
+        return;
+    }
+
+    const imageObject = await createImageObject({
+        upload: image,
+        canvasWidth: project.canvasWidth,
+        canvasHeight: project.canvasHeight,
+        dropPoint,
+    });
+
+    applySceneChange({
+        ...scene,
+        objects: [...scene.objects, imageObject],
+    });
+
+    setSelectedObjectIds([imageObject.id]);
+    setActiveOption(null);
+};
+
+const handleSelectedImageFiltersChange = (
+    filters: EditorImageFilterValues,
+) => {
+    if (!selectedObjectId) {
+        return;
+    }
+
+    applySceneChange({
+        ...scene,
+        objects: scene.objects.map((object) => {
+            if (
+                object.id !== selectedObjectId ||
+                object.type !== 'image' ||
+                object.locked
+            ) {
+                return object;
+            }
+
+            return {
+                ...object,
+                filters,
+            };
+        }),
+    });
+};
 
     const handleSelectedObjectDelete = () => {
         if (selectedObjectIds.length === 0) {
@@ -542,6 +686,13 @@ export function EditorPage() {
     return (
         <>
             <EditorLayout
+
+                uploadedImages={uploadedImages}
+                isUploadingImages={isUploadingImages}
+                onImagesUpload={handleImagesUpload}
+                onUploadedImagePlace={handleUploadedImagePlace}
+                onUploadedImageDelete={handleUploadedImageDelete}
+                onSelectedImageFiltersChange={handleSelectedImageFiltersChange}
                 project={project}
                 scene={scene}
                 activePanel={activePanel}

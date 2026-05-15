@@ -1,9 +1,11 @@
 // src/layouts/editor-layout/EditorLayout.tsx
 import type { WorkspaceProject } from '../../shared/types/workspace';
 import type {
+    EditorImageFilterValues,
     EditorOption,
     EditorPanel,
     EditorScene,
+    EditorUploadedImage,
 } from '../../features/editor/model/editorTypes';
 import { EditorSidebar } from '../../widgets/editor-sidebar/EditorSidebar';
 import { EditorHeader } from '../../widgets/editor-header/EditorHeader';
@@ -17,6 +19,8 @@ type EditorLayoutProps = {
     scene: EditorScene;
     activePanel: EditorPanel;
     activeOption: EditorOption;
+    uploadedImages: EditorUploadedImage[];
+    isUploadingImages: boolean;
     recentColors: string[];
     toolColors: Record<string, string>;
     toolStrokeWidths: Record<string, number>;
@@ -30,6 +34,12 @@ type EditorLayoutProps = {
     onPanelChange: (panel: EditorPanel) => void;
     onOptionChange: (option: EditorOption) => void;
     onSceneCommit: (scene: EditorScene) => void;
+    onImagesUpload: (files: File[]) => Promise<void>;
+    onUploadedImagePlace: (
+        image: EditorUploadedImage,
+        dropPoint?: { x: number; y: number },
+    ) => Promise<void>;
+    onUploadedImageDelete: (imageId: string) => Promise<void>;
     onToolColorPreview: (toolId: string, color: string) => void;
     onToolColorCommit: (toolId: string, color: string) => void;
     onToolStrokeWidthChange: (toolId: string, strokeWidth: number) => void;
@@ -45,6 +55,7 @@ type EditorLayoutProps = {
     onSelectedObjectColorChangeStart: () => void;
     onSelectedObjectColorPreview: (color: string) => void;
     onSelectedObjectColorCommit: (color: string) => void;
+    onSelectedImageFiltersChange: (filters: EditorImageFilterValues) => void;
     onSelectedObjectDuplicate: () => void;
     onSelectedObjectLockToggle: () => void;
     onSelectedObjectDelete: () => void;
@@ -55,6 +66,8 @@ export function EditorLayout({
     scene,
     activePanel,
     activeOption,
+    uploadedImages,
+    isUploadingImages,
     recentColors,
     toolColors,
     toolStrokeWidths,
@@ -68,6 +81,9 @@ export function EditorLayout({
     onPanelChange,
     onOptionChange,
     onSceneCommit,
+    onImagesUpload,
+    onUploadedImagePlace,
+    onUploadedImageDelete,
     onToolColorPreview,
     onToolColorCommit,
     onToolStrokeWidthChange,
@@ -83,6 +99,7 @@ export function EditorLayout({
     onSelectedObjectColorChangeStart,
     onSelectedObjectColorPreview,
     onSelectedObjectColorCommit,
+    onSelectedImageFiltersChange,
     onSelectedObjectDuplicate,
     onSelectedObjectLockToggle,
     onSelectedObjectDelete,
@@ -93,6 +110,7 @@ export function EditorLayout({
 
     const selectedObject =
         selectedObjects.length === 1 ? selectedObjects[0] : null;
+
     return (
         <main className="editor-layout">
             <EditorSidebar
@@ -118,10 +136,17 @@ export function EditorLayout({
                     <EditorSubSidebar
                         activePanel={activePanel}
                         activeOption={activeOption}
+                        uploadedImages={uploadedImages}
+                        isUploadingImages={isUploadingImages}
                         toolColors={toolColors}
                         toolStrokeWidths={toolStrokeWidths}
                         recentToolColors={recentColors}
                         onOptionChange={onOptionChange}
+                        onImagesUpload={onImagesUpload}
+                        onUploadedImagePlace={(image) =>
+                            onUploadedImagePlace(image)
+                        }
+                        onUploadedImageDelete={onUploadedImageDelete}
                         onToolColorPreview={onToolColorPreview}
                         onToolColorCommit={onToolColorCommit}
                         onToolStrokeWidthChange={onToolStrokeWidthChange}
@@ -149,6 +174,9 @@ export function EditorLayout({
                             onSelectedObjectColorCommit={
                                 onSelectedObjectColorCommit
                             }
+                            onSelectedImageFiltersChange={
+                                onSelectedImageFiltersChange
+                            }
                             onSelectedObjectDuplicate={
                                 onSelectedObjectDuplicate
                             }
@@ -162,12 +190,14 @@ export function EditorLayout({
                             project={project}
                             scene={scene}
                             activeOption={activeOption}
+                            uploadedImages={uploadedImages}
                             toolColors={toolColors}
                             toolStrokeWidths={toolStrokeWidths}
                             zoom={zoom}
                             onZoomChange={onZoomChange}
                             onCanvasSelect={() => onOptionChange(null)}
                             onSceneCommit={onSceneCommit}
+                            onUploadedImagePlace={onUploadedImagePlace}
                             selectedObjectIds={selectedObjectIds}
                             onObjectSelect={onObjectSelect}
                             onOptionChange={onOptionChange}

@@ -1,3 +1,4 @@
+//src/features/workspace/ui/custom-template-card/CustomTemplateCard.tsx
 import customPlusIcon from '../../../../assets/home-page/custom-plus.svg';
 import './CustomTemplateCard.css';
 

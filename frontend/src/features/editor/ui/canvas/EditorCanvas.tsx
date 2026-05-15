@@ -1,7 +1,11 @@
 // src/features/editor/ui/canvas/EditorCanvas.tsx
 import { useEffect, useMemo, useRef } from 'react';
 import type { WorkspaceProject } from '../../../../shared/types/workspace';
-import type { EditorOption, EditorScene } from '../../model/editorTypes';
+import type {
+    EditorOption,
+    EditorScene,
+    EditorUploadedImage,
+} from '../../model/editorTypes';
 import {
     getActiveDrawingTool,
     useCanvasDrawing,
@@ -18,11 +22,16 @@ type EditorCanvasProps = {
     project: WorkspaceProject;
     scene: EditorScene;
     activeOption: EditorOption;
+    uploadedImages: EditorUploadedImage[];
     toolColors: Record<string, string>;
     zoom: number;
     onZoomChange: (zoom: number) => void;
     onCanvasSelect: () => void;
     onSceneCommit: (scene: EditorScene) => void;
+    onUploadedImagePlace: (
+        image: EditorUploadedImage,
+        dropPoint?: { x: number; y: number },
+    ) => Promise<void>;
     toolStrokeWidths: Record<string, number>;
     selectedObjectIds: string[];
     onObjectSelect: (objectIds: string[]) => void;
@@ -33,11 +42,13 @@ export function EditorCanvas({
     project,
     scene,
     activeOption,
+    uploadedImages,
     toolColors,
     zoom,
     onZoomChange,
     onCanvasSelect,
     onSceneCommit,
+    onUploadedImagePlace,
     toolStrokeWidths,
     selectedObjectIds,
     onObjectSelect,
@@ -109,6 +120,47 @@ export function EditorCanvas({
         });
     };
 
+    const getCanvasPoint = (clientX: number, clientY: number) => {
+        const canvasElement = canvasRef.current;
+
+        if (!canvasElement) {
+            return null;
+        }
+
+        const rect = canvasElement.getBoundingClientRect();
+
+        return {
+            x: (clientX - rect.left) / canvasScale,
+            y: (clientY - rect.top) / canvasScale,
+        };
+    };
+
+    const handleUploadedImageDrop = (
+        event: React.DragEvent<HTMLDivElement>,
+    ) => {
+        const uploadedImageId = event.dataTransfer.getData(
+            'application/modden-upload-image',
+        );
+
+        if (!uploadedImageId) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const uploadedImage = uploadedImages.find(
+            (image) => image.id === uploadedImageId,
+        );
+
+        const dropPoint = getCanvasPoint(event.clientX, event.clientY);
+
+        if (!uploadedImage || !dropPoint) {
+            return;
+        }
+
+        void onUploadedImagePlace(uploadedImage, dropPoint);
+    };
+
     return (
         <section className="editor-canvas-area" ref={canvasAreaRef}>
             <div className="editor-canvas-area__stage">
@@ -119,6 +171,17 @@ export function EditorCanvas({
                     } ${activeShapeType ? 'editor-canvas--placing-shape' : ''}`}
                     role="button"
                     tabIndex={0}
+                    onDragOver={(event) => {
+                        if (
+                            event.dataTransfer.types.includes(
+                                'application/modden-upload-image',
+                            )
+                        ) {
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = 'copy';
+                        }
+                    }}
+                    onDrop={handleUploadedImageDrop}
                     onPointerDown={(event) => {
                         if (activeDrawingTool === 'eraser') {
                             handlePointerDown(event);

@@ -2,15 +2,19 @@
 import {
     Control,
     Ellipse,
+    FabricImage,
     Path,
     Polygon,
     Rect,
     Triangle,
     controlsUtils,
+    filters,
 } from 'fabric';
 import type { FabricObject } from 'fabric';
 import type {
     EditorDrawObject,
+    EditorImageFilterValues,
+    EditorImageObject,
     EditorSceneObject,
     EditorShapeObject,
 } from '../../model/editorTypes';
@@ -47,19 +51,15 @@ function createCornerRotateControl(
         y,
         offsetX,
         offsetY,
-
         visible: true,
         withConnection: false,
-
         sizeX: 32,
         sizeY: 32,
         touchSizeX: 44,
         touchSizeY: 44,
-
         actionName: 'rotate',
         actionHandler: controlsUtils.rotationWithSnapping,
         cursorStyle: 'grab',
-
         render: renderInvisibleControl,
     });
 }
@@ -70,12 +70,10 @@ export function configureEditorControls(canvasObject: FabricObject) {
         tr: true,
         bl: true,
         br: true,
-
         mt: true,
         mb: true,
         ml: true,
         mr: true,
-
         mtr: false,
     });
 
@@ -117,14 +115,11 @@ export function configureEditorControls(canvasObject: FabricObject) {
         tr: true,
         bl: true,
         br: true,
-
         mt: true,
         mb: true,
         ml: true,
         mr: true,
-
         mtr: false,
-
         rotateTopLeft: true,
         rotateTopRight: true,
         rotateBottomLeft: true,
@@ -144,18 +139,14 @@ function applyEditorMeta(
     editorObject.set({
         selectable: true,
         evented: true,
-
         hasControls: !object.locked,
         hasBorders: true,
-
         lockMovementX: Boolean(object.locked),
         lockMovementY: Boolean(object.locked),
         lockScalingX: Boolean(object.locked),
         lockScalingY: Boolean(object.locked),
         lockRotation: Boolean(object.locked),
-
         lockScalingFlip: true,
-
         borderColor: SELECTION_COLOR,
         cornerColor: '#ffffff',
         cornerStrokeColor: SELECTION_COLOR,
@@ -195,6 +186,7 @@ function createDrawCanvasObject(object: EditorDrawObject): EditorCanvasObject {
 
     return applyEditorMeta(canvasObject, object);
 }
+
 function getPentagonPoints(width: number, height: number) {
     return [
         { x: width / 2, y: 0 },
@@ -279,11 +271,89 @@ function createShapeCanvasObject(
     );
 }
 
-export function createCanvasObject(
+function createFabricImageFilters(filterValues: EditorImageFilterValues) {
+    const imageFilters = [];
+
+    if (filterValues.brightness !== 0) {
+        imageFilters.push(
+            new filters.Brightness({
+                brightness: filterValues.brightness,
+            }),
+        );
+    }
+
+    if (filterValues.contrast !== 0) {
+        imageFilters.push(
+            new filters.Contrast({
+                contrast: filterValues.contrast,
+            }),
+        );
+    }
+
+    if (filterValues.saturation !== 0) {
+        imageFilters.push(
+            new filters.Saturation({
+                saturation: filterValues.saturation,
+            }),
+        );
+    }
+
+    if (filterValues.grayscale > 0) {
+        imageFilters.push(new filters.Grayscale());
+    }
+
+    if (filterValues.sepia > 0) {
+        imageFilters.push(new filters.Sepia());
+    }
+
+    if (filterValues.blur > 0) {
+        imageFilters.push(
+            new filters.Blur({
+                blur: filterValues.blur,
+            }),
+        );
+    }
+
+    if (filterValues.invert > 0) {
+        imageFilters.push(new filters.Invert());
+    }
+
+    return imageFilters;
+}
+
+async function createImageCanvasObject(
+    object: EditorImageObject,
+): Promise<EditorCanvasObject> {
+    const image = await FabricImage.fromURL(object.src, {
+        crossOrigin: 'anonymous',
+    });
+
+    image.set({
+        left: object.x + object.width / 2,
+        top: object.y + object.height / 2,
+        originX: 'center',
+        originY: 'center',
+        scaleX: object.width / Math.max(1, image.width ?? object.width),
+        scaleY: object.height / Math.max(1, image.height ?? object.height),
+        angle: object.rotation,
+        objectCaching: false,
+    });
+
+    image.filters = createFabricImageFilters(object.filters);
+    image.applyFilters();
+
+    return applyEditorMeta(image, object);
+}
+
+export async function createCanvasObject(
     object: EditorSceneObject,
-): EditorCanvasObject {
+): Promise<EditorCanvasObject> {
     if (object.type === 'draw') {
         return createDrawCanvasObject(object);
+    }
+
+    if (object.type === 'image') {
+        return createImageCanvasObject(object);
     }
 
     return createShapeCanvasObject(object);

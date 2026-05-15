@@ -1,5 +1,4 @@
 // src/features/editor/model/editorTypes.ts
-
 export type EditorPanel =
     | 'tools'
     | 'shapes'
@@ -55,7 +54,41 @@ export type EditorShapeObject = {
     locked?: boolean;
 };
 
-export type EditorSceneObject = EditorDrawObject | EditorShapeObject;
+export type EditorImageFilterValues = {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    grayscale: number;
+    sepia: number;
+    blur: number;
+    invert: number;
+};
+
+export type EditorImageObject = {
+    id: string;
+    type: 'image';
+    assetId: string;
+    src: string;
+    fileName: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    filters: EditorImageFilterValues;
+    locked?: boolean;
+};
+
+export type EditorUploadedImage = {
+    id: string;
+    src: string;
+    fileName: string;
+};
+
+export type EditorSceneObject =
+    | EditorDrawObject
+    | EditorShapeObject
+    | EditorImageObject;
 
 export type EditorScene = {
     version: 1;

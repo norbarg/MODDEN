@@ -93,6 +93,7 @@
     top: 46px;
     right: -155px;
     background: #ffffff;
+    position: relative;
 }
 
 .editor-subheader--object .editor-color-picker-popover__hex-row {
@@ -125,4 +126,106 @@
     .editor-subheader {
         right: 18px;
     }
+}
+
+/* Filters */
+.editor-subheader__filters {
+    position: relative;
+}
+
+.editor-subheader__filters-popup {
+    position: absolute;
+    top: calc(100% + 27px);
+    left: 50%;
+    z-index: 30;
+
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    padding: 20px 22px 18px;
+
+    background: #ffffff;
+    border-radius: 28px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.24);
+
+    box-sizing: border-box;
+    transform: translateX(-50%);
+}
+
+
+.editor-subheader__filter-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.editor-subheader__filter-row + .editor-subheader__filter-row {
+    margin-top: 14px;
+}
+
+.editor-subheader__filter-row span {
+    color: #000000;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 500;
+}
+
+.editor-subheader__filter-row input {
+    width: 100%;
+    height: 5px;
+    appearance: none;
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+
+    background: linear-gradient(
+        to right,
+        #FF3D00 0%,
+        #FF3D00 var(--filter-progress),
+        #708D96 var(--filter-progress),
+        #708D96 100%
+    );
+}
+
+.editor-subheader__filter-row input::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    appearance: none;
+    border: 0;
+    border-radius: 50%;
+    background: #ff4b1f;
+    cursor: pointer;
+}
+
+.editor-subheader__filter-row input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #ff4b1f;
+    cursor: pointer;
+}
+
+.editor-subheader__filters-reset {
+    width: 100%;
+    margin-top: 18px;
+    padding: 9px 12px;
+
+    border: 0;
+    border-radius: 999px;
+    background: #f6f6f6;
+
+    color: #708d96;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.editor-subheader__filters-reset:hover {
+    background: #eef3f4;
+    color: #ff4b1f;
 }

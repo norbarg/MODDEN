@@ -3,6 +3,7 @@ import { util } from 'fabric';
 import type { FabricObject } from 'fabric';
 import type {
     EditorDrawObject,
+    EditorImageObject,
     EditorScene,
     EditorSceneObject,
     EditorShapeObject,
@@ -52,6 +53,28 @@ function updateShapeObjectFromCanvasObject(
     };
 }
 
+function updateImageObjectFromCanvasObject(
+    object: EditorImageObject,
+    canvasObject: FabricObject,
+): EditorImageObject {
+    const transform = getObjectTransform(canvasObject);
+
+    const baseWidth = canvasObject.width ?? object.width;
+    const baseHeight = canvasObject.height ?? object.height;
+
+    const width = Math.max(1, baseWidth * transform.scaleX);
+    const height = Math.max(1, baseHeight * transform.scaleY);
+
+    return {
+        ...object,
+        x: transform.centerX - width / 2,
+        y: transform.centerY - height / 2,
+        width,
+        height,
+        rotation: transform.rotation,
+    };
+}
+
 function updateDrawObjectFromCanvasObject(
     object: EditorDrawObject,
     canvasObject: FabricObject,
@@ -61,18 +84,16 @@ function updateDrawObjectFromCanvasObject(
     const baseWidth = canvasObject.width ?? 0;
     const baseHeight = canvasObject.height ?? 0;
 
-    const width = Math.max(1, baseWidth * transform.scaleX);
-    const height = Math.max(1, baseHeight * transform.scaleY);
-
     return {
         ...object,
-        x: transform.centerX - width / 2,
-        y: transform.centerY - height / 2,
+        x: transform.centerX - (baseWidth * transform.scaleX) / 2,
+        y: transform.centerY - (baseHeight * transform.scaleY) / 2,
         scaleX: transform.scaleX,
         scaleY: transform.scaleY,
         rotation: transform.rotation,
     };
 }
+
 export function updateSceneObjectFromCanvasObject(
     scene: EditorScene,
     canvasObject: FabricObject,
@@ -96,6 +117,10 @@ export function updateSceneObjectFromCanvasObject(
 
             if (object.type === 'shape') {
                 return updateShapeObjectFromCanvasObject(object, canvasObject);
+            }
+
+            if (object.type === 'image') {
+                return updateImageObjectFromCanvasObject(object, canvasObject);
             }
 
             return updateDrawObjectFromCanvasObject(object, canvasObject);

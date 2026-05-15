@@ -2,6 +2,7 @@
 import type {
     EditorOption,
     EditorPanel,
+    EditorUploadedImage,
 } from '../../features/editor/model/editorTypes';
 import { ToolsPanel } from '../../features/editor/ui/panels/tools-panel/ToolsPanel';
 import { ShapesPanel } from '../../features/editor/ui/panels/shapes-panel/ShapesPanel';
@@ -13,10 +14,15 @@ import './EditorSubSidebar.css';
 type EditorSubSidebarProps = {
     activePanel: EditorPanel;
     activeOption: EditorOption;
+    uploadedImages: EditorUploadedImage[];
+    isUploadingImages: boolean;
     toolColors: Record<string, string>;
     toolStrokeWidths: Record<string, number>;
     recentToolColors: string[];
     onOptionChange: (option: EditorOption) => void;
+    onImagesUpload: (files: File[]) => Promise<void>;
+    onUploadedImagePlace: (image: EditorUploadedImage) => Promise<void>;
+    onUploadedImageDelete: (imageId: string) => Promise<void>;
     onToolColorPreview: (toolId: string, color: string) => void;
     onToolColorCommit: (toolId: string, color: string) => void;
     onToolStrokeWidthChange: (toolId: string, strokeWidth: number) => void;
@@ -25,10 +31,15 @@ type EditorSubSidebarProps = {
 export function EditorSubSidebar({
     activePanel,
     activeOption,
+    uploadedImages,
+    isUploadingImages,
     toolColors,
     onOptionChange,
     toolStrokeWidths,
     recentToolColors,
+    onImagesUpload,
+    onUploadedImagePlace,
+    onUploadedImageDelete,
     onToolColorPreview,
     onToolColorCommit,
     onToolStrokeWidthChange,
@@ -38,7 +49,11 @@ export function EditorSubSidebar({
     }
 
     return (
-        <aside className="editor-subsidebar">
+        <aside
+            className={`editor-subsidebar ${
+                activePanel === 'uploads' ? 'editor-subsidebar--uploads' : ''
+            }`}
+        >
             {activePanel === 'tools' && (
                 <ToolsPanel
                     activeOption={activeOption}
@@ -76,7 +91,12 @@ export function EditorSubSidebar({
             {activePanel === 'uploads' && (
                 <UploadsPanel
                     activeOption={activeOption}
+                    uploadedImages={uploadedImages}
+                    isUploadingImages={isUploadingImages}
                     onOptionChange={onOptionChange}
+                    onImagesUpload={onImagesUpload}
+                    onImagePlace={onUploadedImagePlace}
+                    onImageDelete={onUploadedImageDelete}
                 />
             )}
         </aside>

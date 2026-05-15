@@ -1,3 +1,4 @@
+// src/assets/assets.service.ts
 import {
   ForbiddenException,
   Injectable,
@@ -7,11 +8,16 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 
+type CreateAssetParams = {
+  userId: string;
+  fileUrl: string;
+};
+
 @Injectable()
 export class AssetsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, fileUrl: string) {
+  async create({ userId, fileUrl }: CreateAssetParams) {
     return this.prisma.asset.create({
       data: {
         userId,
@@ -22,14 +28,20 @@ export class AssetsService {
 
   async findAllByUser(userId: string) {
     return this.prisma.asset.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
   async remove(userId: string, assetId: string) {
     const asset = await this.prisma.asset.findUnique({
-      where: { id: assetId },
+      where: {
+        id: assetId,
+      },
     });
 
     if (!asset) {
@@ -40,20 +52,21 @@ export class AssetsService {
       throw new ForbiddenException('You do not have access to this asset');
     }
 
-    const fileName = asset.fileUrl.split('/uploads/')[1];
+    const fileName = asset.fileUrl.split('/uploads/assets/')[1];
 
     if (fileName) {
-      const filePath = join(process.cwd(), 'uploads', fileName);
+      const filePath = join(process.cwd(), 'uploads', 'assets', fileName);
 
       try {
         await unlink(filePath);
       } catch {
-        // ignore if file is already missing
       }
     }
 
     await this.prisma.asset.delete({
-      where: { id: assetId },
+      where: {
+        id: assetId,
+      },
     });
 
     return {

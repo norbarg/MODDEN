@@ -1,3 +1,4 @@
+//src/stock-images/stock-images.service.ts
 import {
   BadRequestException,
   Injectable,
