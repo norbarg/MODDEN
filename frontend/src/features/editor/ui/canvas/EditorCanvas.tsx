@@ -129,32 +129,52 @@ export function EditorCanvas({
             y: (clientY - rect.top) / canvasScale,
         };
     };
-
+    
     const handleUploadedImageDrop = (
-        event: React.DragEvent<HTMLDivElement>,
-    ) => {
-        const uploadedImageId = event.dataTransfer.getData(
-            'application/modden-upload-image',
-        );
+    event: React.DragEvent<HTMLDivElement>,
+) => {
+    const uploadedImageId = event.dataTransfer.getData(
+        'application/modden-upload-image',
+    );
 
-        if (!uploadedImageId) {
-            return;
+    const stockImageData = event.dataTransfer.getData(
+        'application/modden-stock-image',
+    );
+
+    if (!uploadedImageId && !stockImageData) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const dropPoint = getCanvasPoint(event.clientX, event.clientY);
+
+    if (!dropPoint) {
+        return;
+    }
+
+    if (stockImageData) {
+        try {
+            const stockImage = JSON.parse(stockImageData) as EditorUploadedImage;
+
+            void onUploadedImagePlace(stockImage, dropPoint);
+        } catch (err) {
+            console.error(err);
         }
 
-        event.preventDefault();
+        return;
+    }
 
-        const uploadedImage = uploadedImages.find(
-            (image) => image.id === uploadedImageId,
-        );
+    const uploadedImage = uploadedImages.find(
+        (image) => image.id === uploadedImageId,
+    );
 
-        const dropPoint = getCanvasPoint(event.clientX, event.clientY);
+    if (!uploadedImage) {
+        return;
+    }
 
-        if (!uploadedImage || !dropPoint) {
-            return;
-        }
-
-        void onUploadedImagePlace(uploadedImage, dropPoint);
-    };
+    void onUploadedImagePlace(uploadedImage, dropPoint);
+};
 
     return (
         <section className="editor-canvas-area" ref={canvasAreaRef}>
@@ -167,15 +187,18 @@ export function EditorCanvas({
                     role="button"
                     tabIndex={0}
                     onDragOver={(event) => {
-                        if (
-                            event.dataTransfer.types.includes(
-                                'application/modden-upload-image',
-                            )
-                        ) {
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = 'copy';
-                        }
-                    }}
+    if (
+        event.dataTransfer.types.includes(
+            'application/modden-upload-image',
+        ) ||
+        event.dataTransfer.types.includes(
+            'application/modden-stock-image',
+        )
+    ) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+    }
+}}
                     onDrop={handleUploadedImageDrop}
                     onPointerDown={(event) => {
                         if (activeDrawingTool === 'eraser') {

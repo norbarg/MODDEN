@@ -1,3 +1,5 @@
+// import type { CSSProperties } from 'react';
+import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type {
     EditorTextFontWeight,
@@ -57,6 +59,8 @@ export function EditorTextToolbar({
     onTextColorPreview,
     onTextColorCommit,
 }: EditorTextToolbarProps) {
+    const [isFontFamilyOpen, setIsFontFamilyOpen] = useState(false);
+    const [isFontWeightOpen, setIsFontWeightOpen] = useState(false);
     const handleFontSizeChange = (delta: number) => {
         onTextChange({
             fontSize: Math.max(8, selectedTextObject.fontSize + delta),
@@ -65,60 +69,146 @@ export function EditorTextToolbar({
 
     return (
         <>
-            <div className="editor-subheader__select-wrap editor-subheader__select-wrap--font">
-                <select
-                    className="editor-subheader__select"
-                    value={selectedTextObject.fontFamily}
-                    disabled={isDisabled}
-                    onChange={(event) =>
-                        onTextChange({
-                            fontFamily: event.target.value,
-                        })
-                    }
-                >
-                    {FONT_FAMILIES.map((fontFamily) => (
-                        <option key={fontFamily} value={fontFamily}>
-                            {fontFamily}
-                        </option>
-                    ))}
-                </select>
+            <div
+    className={`editor-subheader__dropdown editor-subheader__dropdown--font ${
+        isFontFamilyOpen ? 'editor-subheader__dropdown--open' : ''
+    }`}
+    onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setIsFontFamilyOpen(false);
+        }
+    }}
+>
+    <button
+        className="editor-subheader__dropdown-button"
+        type="button"
+        disabled={isDisabled}
+        aria-haspopup="listbox"
+        aria-expanded={isFontFamilyOpen}
+        onClick={() => setIsFontFamilyOpen((isOpen) => !isOpen)}
+    >
+        <span>{selectedTextObject.fontFamily}</span>
 
-                <img
-                    className="editor-subheader__select-arrow"
-                    src={chevronDownIcon}
-                    alt=""
-                    aria-hidden="true"
-                />
-            </div>
+        <img
+            className="editor-subheader__dropdown-arrow"
+            src={chevronDownIcon}
+            alt=""
+            aria-hidden="true"
+        />
+    </button>
+
+    {isFontFamilyOpen && (
+        <div
+            className="editor-subheader__dropdown-menu editor-subheader__dropdown-menu--font"
+            role="listbox"
+        >
+            {FONT_FAMILIES.map((fontFamily) => {
+                const isSelected =
+                    fontFamily === selectedTextObject.fontFamily;
+
+                return (
+                    <button
+                        key={fontFamily}
+                        className={`editor-subheader__dropdown-option ${
+                            isSelected
+                                ? 'editor-subheader__dropdown-option--active'
+                                : ''
+                        }`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                            onTextChange({ fontFamily });
+                            setIsFontFamilyOpen(false);
+                        }}
+                    >
+                        <span>{fontFamily}</span>
+
+                        {isSelected && (
+                            <span
+                                className="editor-subheader__dropdown-check"
+                                aria-hidden="true"
+                            >
+                                ●
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    )}
+</div>
 
             <span className="editor-subheader__divider" />
+            <div
+    className={`editor-subheader__dropdown editor-subheader__dropdown--weight ${
+        isFontWeightOpen ? 'editor-subheader__dropdown--open' : ''
+    }`}
+    onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setIsFontWeightOpen(false);
+        }
+    }}
+>
+    <button
+        className="editor-subheader__dropdown-button"
+        type="button"
+        disabled={isDisabled}
+        aria-haspopup="listbox"
+        aria-expanded={isFontWeightOpen}
+        onClick={() => setIsFontWeightOpen((isOpen) => !isOpen)}
+    >
+        <span>{getFontWeightLabel(selectedTextObject.fontWeight)}</span>
 
-            <div className="editor-subheader__select-wrap editor-subheader__select-wrap--weight">
-                <select
-                    className="editor-subheader__select"
-                    value={selectedTextObject.fontWeight}
-                    disabled={isDisabled}
-                    onChange={(event) =>
-                        onTextChange({
-                            fontWeight: event.target
-                                .value as EditorTextFontWeight,
-                        })
-                    }
-                >
-                    {FONT_WEIGHTS.map((fontWeight) => (
-                        <option key={fontWeight} value={fontWeight}>
-                            {getFontWeightLabel(fontWeight)}
-                        </option>
-                    ))}
-                </select>
+        <img
+            className="editor-subheader__dropdown-arrow"
+            src={chevronDownIcon}
+            alt=""
+            aria-hidden="true"
+        />
+    </button>
 
-                <img
-                    className="editor-subheader__select-arrow"
-                    src={chevronDownIcon}
-                    alt=""
-                    aria-hidden="true"
-                />
-            </div>
+    {isFontWeightOpen && (
+        <div
+            className="editor-subheader__dropdown-menu editor-subheader__dropdown-menu--weight"
+            role="listbox"
+        >
+            {FONT_WEIGHTS.map((fontWeight) => {
+                const isSelected =
+                    fontWeight === selectedTextObject.fontWeight;
+
+                return (
+                    <button
+                        key={fontWeight}
+                        className={`editor-subheader__dropdown-option ${
+                            isSelected
+                                ? 'editor-subheader__dropdown-option--active'
+                                : ''
+                        }`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                            onTextChange({ fontWeight });
+                            setIsFontWeightOpen(false);
+                        }}
+                    >
+                        <span>{getFontWeightLabel(fontWeight)}</span>
+
+                        {isSelected && (
+                            <span
+                                className="editor-subheader__dropdown-check"
+                                aria-hidden="true"
+                            >
+                                ●
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    )}
+</div>
 
             <div className="editor-subheader__text-size">
                 <button

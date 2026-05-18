@@ -27,7 +27,9 @@ function getImageSize(src: string): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
         const image = new Image();
 
-        image.onload = () => {
+image.crossOrigin = 'anonymous';
+
+image.onload = () => {
             resolve({
                 width: image.naturalWidth || image.width,
                 height: image.naturalHeight || image.height,

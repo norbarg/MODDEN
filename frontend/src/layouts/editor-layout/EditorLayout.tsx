@@ -13,9 +13,12 @@ import { EditorHeader } from '../../widgets/editor-header/EditorHeader';
 import { EditorSubHeader } from '../../widgets/editor-subheader/EditorSubHeader';
 import { EditorSubSidebar } from '../../widgets/editor-subsidebar/EditorSubSidebar';
 import { EditorCanvas } from '../../features/editor/ui/canvas/EditorCanvas';
+import type { EditorExportFormat } from '../../features/editor/export/exportEditorScene';
 import './EditorLayout.css';
 
 type EditorLayoutProps = {
+    isExporting: boolean;
+    onDownloadProject: (format: EditorExportFormat) => Promise<void>;
     project: WorkspaceProject;
     scene: EditorScene;
     activePanel: EditorPanel;
@@ -67,6 +70,8 @@ type EditorLayoutProps = {
 };
 
 export function EditorLayout({
+    isExporting,
+    onDownloadProject,
     project,
     scene,
     activePanel,
@@ -130,6 +135,8 @@ export function EditorLayout({
 
             <section className="editor-layout__workspace">
                 <EditorHeader
+                    isExporting={isExporting}
+                    onDownloadProject={onDownloadProject}
                     project={project}
                     isDirty={isDirty}
                     isSaving={isSaving}

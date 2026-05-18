@@ -335,3 +335,10 @@
         transform: translateY(0) scale(1);
     }
 }
+
+.templates-page__search input::-webkit-search-cancel-button {
+    cursor: pointer;
+    filter: brightness(0) saturate(100%) invert(35%) sepia(94%)
+        saturate(2622%) hue-rotate(353deg) brightness(101%) contrast(101%);
+    opacity: 1;
+}

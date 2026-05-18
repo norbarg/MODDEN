@@ -46,6 +46,11 @@ import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-cha
 import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
 import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
 
+import {
+    exportEditorScene,
+    type EditorExportFormat,
+} from '../../features/editor/export/exportEditorScene';
+
 import './EditorPage.css';
 
 export function EditorPage() {
@@ -164,6 +169,7 @@ export function EditorPage() {
     const [shouldLeaveAfterSave, setShouldLeaveAfterSave] = useState(false);
 
     const [isSavingProject, setIsSavingProject] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const accessToken = authStorage.getAccessToken();
     const refreshToken = authStorage.getRefreshToken();
@@ -400,18 +406,6 @@ export function EditorPage() {
             setIsUploadingImages(false);
         }
     };
-
-    // const handleUploadedImageDelete = async (imageId: string) => {
-    //     try {
-    //         await assetsApi.deleteAsset(imageId);
-
-    //         setUploadedImages((currentImages) =>
-    //             currentImages.filter((image) => image.id !== imageId),
-    //         );
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    // };
 
     const handleUploadedImageDelete = async (imageId: string) => {
         try {
@@ -747,6 +741,32 @@ export function EditorPage() {
         }
     };
 
+const handleDownloadProject = async (format: EditorExportFormat) => {
+    if (!project || isExporting) {
+        return;
+    }
+
+    setIsExporting(true);
+
+    try {
+        await exportEditorScene({
+            project,
+            scene,
+            format,
+        });
+    } catch (err) {
+        console.error(err);
+
+        window.alert(
+            'Failed to export project. Please check images on the canvas and try again.',
+        );
+    } finally {
+        setIsExporting(false);
+    }
+};
+
+
+
     if (!accessToken && !refreshToken) {
         return <Navigate to={ROUTES.LOGIN} replace />;
     }
@@ -768,6 +788,8 @@ export function EditorPage() {
             <EditorLayout
                 uploadedImages={uploadedImages}
                 isUploadingImages={isUploadingImages}
+                isExporting={isExporting}
+                onDownloadProject={handleDownloadProject}
                 onImagesUpload={handleImagesUpload}
                 onUploadedImagePlace={handleUploadedImagePlace}
                 onUploadedImageDelete={handleUploadedImageDelete}

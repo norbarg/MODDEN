@@ -51,8 +51,10 @@ export function EditorSubSidebar({
     return (
         <aside
             className={`editor-subsidebar ${
-                activePanel === 'uploads' ? 'editor-subsidebar--uploads' : ''
-            }`}
+    activePanel === 'uploads' || activePanel === 'images'
+        ? 'editor-subsidebar--uploads'
+        : ''
+}`}
         >
             {activePanel === 'tools' && (
                 <ToolsPanel
@@ -80,13 +82,13 @@ export function EditorSubSidebar({
                     onOptionChange={onOptionChange}
                 />
             )}
-
             {activePanel === 'images' && (
-                <ImagesPanel
-                    activeOption={activeOption}
-                    onOptionChange={onOptionChange}
-                />
-            )}
+    <ImagesPanel
+        activeOption={activeOption}
+        onOptionChange={onOptionChange}
+        onImagePlace={onUploadedImagePlace}
+    />
+)}
 
             {activePanel === 'uploads' && (
                 <UploadsPanel
