@@ -16,6 +16,7 @@ import {
     placeShapeOnCanvas,
 } from '../panels/shapes-panel/canvasShape';
 import { useEditorCanvasZoom } from './zoom/useEditorCanvasZoom';
+import { exportCanvasThumbnail } from './exportCanvasThumbnail';
 import './EditorCanvas.css';
 
 type EditorCanvasProps = {
@@ -36,6 +37,10 @@ type EditorCanvasProps = {
     selectedObjectIds: string[];
     onObjectSelect: (objectIds: string[]) => void;
     onOptionChange: (option: EditorOption) => void;
+    onThumbnailExporterChange?: (
+        exporter: (() => string | null) | null,
+    ) => void;
+    showHotkeyHints: boolean;
 };
 
 export function EditorCanvas({
@@ -53,6 +58,8 @@ export function EditorCanvas({
     selectedObjectIds,
     onObjectSelect,
     onOptionChange,
+    onThumbnailExporterChange,
+    showHotkeyHints,
 }: EditorCanvasProps) {
     const canvasAreaRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -97,6 +104,23 @@ export function EditorCanvas({
         });
 
     useEffect(() => {
+        if (!onThumbnailExporterChange) {
+            return;
+        }
+
+        onThumbnailExporterChange(() =>
+            exportCanvasThumbnail({
+                canvas: canvasInstanceRef.current,
+                backgroundColor: scene.background.color,
+            }),
+        );
+
+        return () => {
+            onThumbnailExporterChange(null);
+        };
+    }, [canvasInstanceRef, onThumbnailExporterChange, scene.background.color]);
+
+    useEffect(() => {
         latestSceneRef.current = scene;
     }, [scene]);
 
@@ -129,52 +153,54 @@ export function EditorCanvas({
             y: (clientY - rect.top) / canvasScale,
         };
     };
-    
+
     const handleUploadedImageDrop = (
-    event: React.DragEvent<HTMLDivElement>,
-) => {
-    const uploadedImageId = event.dataTransfer.getData(
-        'application/modden-upload-image',
-    );
+        event: React.DragEvent<HTMLDivElement>,
+    ) => {
+        const uploadedImageId = event.dataTransfer.getData(
+            'application/modden-upload-image',
+        );
 
-    const stockImageData = event.dataTransfer.getData(
-        'application/modden-stock-image',
-    );
+        const stockImageData = event.dataTransfer.getData(
+            'application/modden-stock-image',
+        );
 
-    if (!uploadedImageId && !stockImageData) {
-        return;
-    }
-
-    event.preventDefault();
-
-    const dropPoint = getCanvasPoint(event.clientX, event.clientY);
-
-    if (!dropPoint) {
-        return;
-    }
-
-    if (stockImageData) {
-        try {
-            const stockImage = JSON.parse(stockImageData) as EditorUploadedImage;
-
-            void onUploadedImagePlace(stockImage, dropPoint);
-        } catch (err) {
-            console.error(err);
+        if (!uploadedImageId && !stockImageData) {
+            return;
         }
 
-        return;
-    }
+        event.preventDefault();
 
-    const uploadedImage = uploadedImages.find(
-        (image) => image.id === uploadedImageId,
-    );
+        const dropPoint = getCanvasPoint(event.clientX, event.clientY);
 
-    if (!uploadedImage) {
-        return;
-    }
+        if (!dropPoint) {
+            return;
+        }
 
-    void onUploadedImagePlace(uploadedImage, dropPoint);
-};
+        if (stockImageData) {
+            try {
+                const stockImage = JSON.parse(
+                    stockImageData,
+                ) as EditorUploadedImage;
+
+                void onUploadedImagePlace(stockImage, dropPoint);
+            } catch (err) {
+                console.error(err);
+            }
+
+            return;
+        }
+
+        const uploadedImage = uploadedImages.find(
+            (image) => image.id === uploadedImageId,
+        );
+
+        if (!uploadedImage) {
+            return;
+        }
+
+        void onUploadedImagePlace(uploadedImage, dropPoint);
+    };
 
     return (
         <section className="editor-canvas-area" ref={canvasAreaRef}>
@@ -187,18 +213,18 @@ export function EditorCanvas({
                     role="button"
                     tabIndex={0}
                     onDragOver={(event) => {
-    if (
-        event.dataTransfer.types.includes(
-            'application/modden-upload-image',
-        ) ||
-        event.dataTransfer.types.includes(
-            'application/modden-stock-image',
-        )
-    ) {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-    }
-}}
+                        if (
+                            event.dataTransfer.types.includes(
+                                'application/modden-upload-image',
+                            ) ||
+                            event.dataTransfer.types.includes(
+                                'application/modden-stock-image',
+                            )
+                        ) {
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = 'copy';
+                        }
+                    }}
                     onDrop={handleUploadedImageDrop}
                     onPointerDown={(event) => {
                         if (activeDrawingTool === 'eraser') {
@@ -250,6 +276,11 @@ export function EditorCanvas({
                     −
                 </button>
                 <strong>{zoom}%</strong>
+                {showHotkeyHints && (
+                    <span className="editor-zoom-controls__hotkey">
+                        Ctrl + wheel
+                    </span>
+                )}
             </div>
         </section>
     );

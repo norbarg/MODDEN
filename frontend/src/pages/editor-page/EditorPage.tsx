@@ -1,5 +1,5 @@
 // src/pages/editor-page/EditorPage.tsx
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { projectsApi } from '../../shared/api/projectsApi';
 import { templatesApi } from '../../shared/api/templatesApi';
@@ -37,12 +37,14 @@ import { useEditorProjectSave } from '../../features/editor/model/useEditorProje
 import { useEditorKeyboardMove } from '../../features/editor/model/editorKeyboardMove';
 import { useEditorHistory } from '../../features/editor/model/useEditorHistory';
 import { editorDraftStorage } from '../../features/editor/model/editorDraftStorage';
+import { useEditorHotkeys } from '../../features/editor/model/useEditorHotkeys';
 
 import {
     SaveProjectModal,
     type SaveProjectOptions,
 } from '../../features/editor/ui/modals/save-project-modal';
 import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-changes-modal';
+import { ShareProjectModal } from '../../features/editor/ui/modals/share-project-modal';
 import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
 import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
 
@@ -68,6 +70,12 @@ export function EditorPage() {
         [],
     );
     const [isUploadingImages, setIsUploadingImages] = useState(false);
+
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+    const [isHotkeyHintsVisible, setIsHotkeyHintsVisible] = useState(false);
+
+    const lastSaveProjectOptionsRef = useRef<SaveProjectOptions | null>(null);
 
     const selectedObjectId =
         selectedObjectIds.length === 1 ? selectedObjectIds[0] : null;
@@ -112,6 +120,15 @@ export function EditorPage() {
 
         return first.every((value, index) => value === second[index]);
     }
+
+    const thumbnailExporterRef = useRef<(() => string | null) | null>(null);
+
+    const handleThumbnailExporterChange = useCallback(
+        (exporter: (() => string | null) | null) => {
+            thumbnailExporterRef.current = exporter;
+        },
+        [],
+    );
 
     const handleObjectSelect = (objectIds: string[]) => {
         colorEditingObjectIdRef.current = null;
@@ -215,6 +232,7 @@ export function EditorPage() {
         project,
         linkedTemplate,
         scene,
+        getThumbnailUrl: () => thumbnailExporterRef.current?.() ?? null,
         onProjectSaved: (updatedProject) => {
             setProject(updatedProject);
             setIsMetaDirty(false);
@@ -237,6 +255,15 @@ export function EditorPage() {
             }
         },
     });
+
+    const handleSaveProjectWithOptions = async (
+        options: SaveProjectOptions,
+    ) => {
+        lastSaveProjectOptionsRef.current = options;
+        setSaveProjectOptions(options);
+
+        await saveProject(options);
+    };
 
     const isDirty = isSceneDirty || isMetaDirty;
 
@@ -702,6 +729,25 @@ export function EditorPage() {
         addRecentColor(color);
     };
 
+    const handleQuickSaveProject = async () => {
+        if (isSaving) {
+            return;
+        }
+
+        if (!isDirty) {
+            return;
+        }
+
+        const lastOptions = lastSaveProjectOptionsRef.current;
+
+        if (!lastOptions) {
+            setIsSaveModalOpen(true);
+            return;
+        }
+
+        await handleSaveProjectWithOptions(lastOptions);
+    };
+
     const handleBack = () => {
         if (isDirty) {
             setIsUnsavedModalOpen(true);
@@ -741,31 +787,44 @@ export function EditorPage() {
         }
     };
 
-const handleDownloadProject = async (format: EditorExportFormat) => {
-    if (!project || isExporting) {
-        return;
-    }
+    const handleDownloadProject = async (format: EditorExportFormat) => {
+        if (!project || isExporting) {
+            return;
+        }
 
-    setIsExporting(true);
+        setIsExporting(true);
 
-    try {
-        await exportEditorScene({
-            project,
-            scene,
-            format,
-        });
-    } catch (err) {
-        console.error(err);
+        try {
+            await exportEditorScene({
+                project,
+                scene,
+                format,
+            });
+        } catch (err) {
+            console.error(err);
 
-        window.alert(
-            'Failed to export project. Please check images on the canvas and try again.',
-        );
-    } finally {
-        setIsExporting(false);
-    }
-};
+            window.alert(
+                'Failed to export project. Please check images on the canvas and try again.',
+            );
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
-
+    useEditorHotkeys({
+        isDisabled:
+            isEditModalOpen ||
+            isSaveModalOpen ||
+            isUnsavedModalOpen ||
+            isShareModalOpen ||
+            isLoading,
+        isSaving,
+        isDirty,
+        selectedObjectIds,
+        onQuickSave: handleQuickSaveProject,
+        onDeleteSelected: handleSelectedObjectDelete,
+        onHotkeyHintsVisibleChange: setIsHotkeyHintsVisible,
+    });
 
     if (!accessToken && !refreshToken) {
         return <Navigate to={ROUTES.LOGIN} replace />;
@@ -839,6 +898,9 @@ const handleDownloadProject = async (format: EditorExportFormat) => {
                 }
                 onSelectedTextColorPreview={handleSelectedTextColorPreview}
                 onSelectedTextColorCommit={handleSelectedTextColorCommit}
+                onThumbnailExporterChange={handleThumbnailExporterChange}
+                onShareProject={() => setIsShareModalOpen(true)}
+                showHotkeyHints={isHotkeyHintsVisible}
             />
 
             <CreateProjectModal
@@ -862,7 +924,7 @@ const handleDownloadProject = async (format: EditorExportFormat) => {
                     setShouldLeaveAfterSave(false);
                     setIsSaveModalOpen(false);
                 }}
-                onSave={saveProject}
+                onSave={handleSaveProjectWithOptions}
             />
 
             <UnsavedChangesModal
@@ -876,6 +938,13 @@ const handleDownloadProject = async (format: EditorExportFormat) => {
                     navigate(ROUTES.PROJECTS);
                 }}
                 onSaveAndLeave={handleSaveAndLeave}
+            />
+
+            <ShareProjectModal
+                isOpen={isShareModalOpen}
+                project={project}
+                scene={scene}
+                onClose={() => setIsShareModalOpen(false)}
             />
         </>
     );

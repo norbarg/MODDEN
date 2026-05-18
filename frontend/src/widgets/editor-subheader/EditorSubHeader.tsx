@@ -35,6 +35,7 @@ type EditorSubHeaderProps = {
     onSelectedTextColorChangeStart: () => void;
     onSelectedTextColorPreview: (color: string) => void;
     onSelectedTextColorCommit: (color: string) => void;
+    showHotkeyHints: boolean;
 };
 
 export function EditorSubHeader({
@@ -55,6 +56,7 @@ export function EditorSubHeader({
     onSelectedTextColorChangeStart,
     onSelectedTextColorPreview,
     onSelectedTextColorCommit,
+    showHotkeyHints,
 }: EditorSubHeaderProps) {
     const hasSelectedObjects = selectedObjects.length > 0;
 
@@ -221,6 +223,9 @@ export function EditorSubHeader({
             >
                 <img src={deleteIcon} alt="" aria-hidden="true" />
             </button>
+            {showHotkeyHints && (
+                <span className="editor-subheader__hotkey">Del</span>
+            )}
         </div>
     );
 }

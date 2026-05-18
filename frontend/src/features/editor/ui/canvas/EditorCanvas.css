@@ -91,3 +91,27 @@
     position: absolute !important;
     inset: 0;
 }
+.editor-zoom-controls {
+    position: fixed;
+}
+
+.editor-zoom-controls__hotkey {
+    position: absolute;
+    right: calc(100% + 10px);
+    bottom: 8px;
+    z-index: 100;
+
+    padding: 4px 7px;
+    border-radius: 7px;
+
+    background: #ff3d00;
+    color: #ffffff;
+
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 600;
+    white-space: nowrap;
+
+    box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
+    pointer-events: none;
+}

@@ -67,6 +67,11 @@ type EditorLayoutProps = {
     onSelectedTextColorChangeStart: () => void;
     onSelectedTextColorPreview: (color: string) => void;
     onSelectedTextColorCommit: (color: string) => void;
+    onThumbnailExporterChange?: (
+        exporter: (() => string | null) | null,
+    ) => void;
+    onShareProject: () => void;
+    showHotkeyHints: boolean;
 };
 
 export function EditorLayout({
@@ -117,6 +122,9 @@ export function EditorLayout({
     onSelectedTextColorChangeStart,
     onSelectedTextColorPreview,
     onSelectedTextColorCommit,
+    onThumbnailExporterChange,
+    onShareProject,
+    showHotkeyHints,
 }: EditorLayoutProps) {
     const selectedObjects = scene.objects.filter((object) =>
         selectedObjectIds.includes(object.id),
@@ -146,6 +154,8 @@ export function EditorLayout({
                     onRedo={onRedo}
                     onOpenProjectSettings={onOpenProjectSettings}
                     onOpenSaveProject={onOpenSaveProject}
+                    onShareProject={onShareProject}
+                    showHotkeyHints={showHotkeyHints}
                 />
 
                 <div className="editor-layout__body">
@@ -210,6 +220,7 @@ export function EditorLayout({
                             onSelectedTextColorCommit={
                                 onSelectedTextColorCommit
                             }
+                            showHotkeyHints={showHotkeyHints}
                         />
 
                         <EditorCanvas
@@ -227,6 +238,10 @@ export function EditorLayout({
                             selectedObjectIds={selectedObjectIds}
                             onObjectSelect={onObjectSelect}
                             onOptionChange={onOptionChange}
+                            onThumbnailExporterChange={
+                                onThumbnailExporterChange
+                            }
+                            showHotkeyHints={showHotkeyHints}
                         />
                     </div>
                 </div>

@@ -23,6 +23,8 @@ type EditorHeaderProps = {
     onOpenSaveProject: () => void;
     isExporting: boolean;
     onDownloadProject: (format: EditorExportFormat) => Promise<void>;
+    onShareProject: () => void;
+    showHotkeyHints: boolean;
 };
 
 export function EditorHeader({
@@ -37,69 +39,71 @@ export function EditorHeader({
     onOpenProjectSettings,
     onOpenSaveProject,
     onDownloadProject,
+    onShareProject,
+    showHotkeyHints,
 }: EditorHeaderProps) {
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [isPngMenuOpen, setIsPngMenuOpen] = useState(false);
-const downloadRef = useRef<HTMLDivElement | null>(null);
+    const downloadRef = useRef<HTMLDivElement | null>(null);
 
-const downloadOptions: Array<
-    | {
-          type: 'format';
-          label: string;
-          description: string;
-          format: EditorExportFormat;
-      }
-    | {
-          type: 'png-group';
-          label: string;
-          description: string;
-      }
-> = [
-    {
-        type: 'png-group',
-        label: 'PNG',
-        description: 'High quality image',
-    },
-    {
-        type: 'format',
-        label: 'JPG',
-        description: 'Smaller image file',
-        format: 'jpg',
-    },
-    {
-        type: 'format',
-        label: 'PDF',
-        description: 'Document for sharing',
-        format: 'pdf',
-    },
-    {
-        type: 'format',
-        label: 'WebP',
-        description: 'Optimized for web',
-        format: 'webp',
-    },
-];
+    const downloadOptions: Array<
+        | {
+              type: 'format';
+              label: string;
+              description: string;
+              format: EditorExportFormat;
+          }
+        | {
+              type: 'png-group';
+              label: string;
+              description: string;
+          }
+    > = [
+        {
+            type: 'png-group',
+            label: 'PNG',
+            description: 'High quality image',
+        },
+        {
+            type: 'format',
+            label: 'JPG',
+            description: 'Smaller image file',
+            format: 'jpg',
+        },
+        {
+            type: 'format',
+            label: 'PDF',
+            description: 'Document for sharing',
+            format: 'pdf',
+        },
+        {
+            type: 'format',
+            label: 'WebP',
+            description: 'Optimized for web',
+            format: 'webp',
+        },
+    ];
 
-useEffect(() => {
-    if (!isDownloadOpen) {
-        return;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-        if (
-            downloadRef.current &&
-            !downloadRef.current.contains(event.target as Node)
-        ) {
-            setIsDownloadOpen(false);
+    useEffect(() => {
+        if (!isDownloadOpen) {
+            return;
         }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                downloadRef.current &&
+                !downloadRef.current.contains(event.target as Node)
+            ) {
+                setIsDownloadOpen(false);
+            }
+        };
 
-    return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-    };
-}, [isDownloadOpen]);
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDownloadOpen]);
 
     return (
         <header className="editor-header">
@@ -125,170 +129,237 @@ useEffect(() => {
 
             <div className="editor-header__right">
                 <div className="unredo">
-                    <button
-                        className="editor-header__icon-button"
-                        type="button"
-                        aria-label="Undo"
-                        disabled={!canUndo}
-                        onClick={onUndo}
-                    >
-                        <img src={undoIcon} alt="" aria-hidden="true" />
-                    </button>
+                    <div className="editor-header__hotkey-wrap">
+                        <button
+                            className="editor-header__icon-button"
+                            type="button"
+                            aria-label="Undo"
+                            disabled={!canUndo}
+                            onClick={onUndo}
+                        >
+                            <img src={undoIcon} alt="" aria-hidden="true" />
+                        </button>
 
-                    <button
-                        className="editor-header__icon-button"
-                        type="button"
-                        aria-label="Redo"
-                        disabled={!canRedo}
-                        onClick={onRedo}
-                    >
-                        <img src={redoIcon} alt="" aria-hidden="true" />
-                    </button>
+                        {showHotkeyHints && (
+                            <span className="editor-header__hotkey">
+                                Ctrl Z
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="editor-header__hotkey-wrap">
+                        <button
+                            className="editor-header__icon-button"
+                            type="button"
+                            aria-label="Redo"
+                            disabled={!canRedo}
+                            onClick={onRedo}
+                        >
+                            <img src={redoIcon} alt="" aria-hidden="true" />
+                        </button>
+
+                        {showHotkeyHints && (
+                            <span className="editor-header__hotkey">
+                                Ctrl Y
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <span className="editor-header__divider" />
 
-                <button
-                    className={`editor-header__save ${
-                        !isDirty ? 'editor-header__save--saved' : ''
-                    }`}
-                    type="button"
-                    disabled={isSaving || !isDirty}
-                    onClick={onOpenSaveProject}
-                >
-                    {!isDirty && (
-                        <img src={savedIcon} alt="" aria-hidden="true" />
+                <div className="editor-header__hotkey-wrap">
+                    <button
+                        className={`editor-header__save ${
+                            !isDirty ? 'editor-header__save--saved' : ''
+                        }`}
+                        type="button"
+                        disabled={isSaving || !isDirty}
+                        onClick={onOpenSaveProject}
+                    >
+                        {!isDirty && (
+                            <img src={savedIcon} alt="" aria-hidden="true" />
+                        )}
+
+                        {isSaving ? 'Saving...' : isDirty ? 'Save' : 'Saved'}
+                    </button>
+
+                    {showHotkeyHints && (
+                        <span className="editor-header__hotkey">Ctrl + S</span>
                     )}
+                </div>
 
-                    {isSaving ? 'Saving...' : isDirty ? 'Save' : 'Saved'}
-                </button>
-
-                <button className="editor-header__share" type="button">
+                <button
+                    className="editor-header__share"
+                    type="button"
+                    onClick={onShareProject}
+                >
                     <img src={shareIcon} alt="" aria-hidden="true" />
                     Share
                 </button>
 
                 <span className="editor-header__divider" />
                 <div
-    className={`editor-header__download-wrap ${
-        isDownloadOpen ? 'editor-header__download-wrap--open' : ''
-    }`}
-    ref={downloadRef}
->
-    <button
-        className="editor-header__download"
-        type="button"
-        disabled={isExporting}
-        onClick={() => setIsDownloadOpen((current) => !current)}
-    >
-        <img src={downloadIcon} alt="" aria-hidden="true" />
-        {isExporting ? 'Exporting...' : 'Download'}
-    </button>
-
-    {isDownloadOpen && (
-        // <div className="editor-header__download-menu">
-        //     {downloadOptions.map((option) => {
-        <div className="editor-header__download-menu">
-    <div className="editor-header__download-menu-head">
-        <strong>Download design</strong>
-        <small>Choose the best export format</small>
-    </div>
-
-    {downloadOptions.map((option) => {
-    if (option.type === 'png-group') {
-        return (
-            <div
-                className="editor-header__download-option-wrap"
-                key="png"
-                onMouseEnter={() => setIsPngMenuOpen(true)}
-                onMouseLeave={() => setIsPngMenuOpen(false)}
-            >
-                <button
-                    className="editor-header__download-option"
-                    type="button"
-                    disabled={isExporting}
-                    onClick={() =>
-                        setIsPngMenuOpen((currentValue) => !currentValue)
-                    }
-                    
+                    className={`editor-header__download-wrap ${
+                        isDownloadOpen
+                            ? 'editor-header__download-wrap--open'
+                            : ''
+                    }`}
+                    ref={downloadRef}
                 >
-                    <span className="editor-header__download-option-text">
-    <strong>{option.label}</strong>
-    <small>{option.description}</small>
-</span>
+                    <button
+                        className="editor-header__download"
+                        type="button"
+                        disabled={isExporting}
+                        onClick={() => setIsDownloadOpen((current) => !current)}
+                    >
+                        <img src={downloadIcon} alt="" aria-hidden="true" />
+                        {isExporting ? 'Exporting...' : 'Download'}
+                    </button>
 
-<span className="editor-header__download-option-arrow">
-    ›
-</span>
-                </button>
+                    {isDownloadOpen && (
+                        // <div className="editor-header__download-menu">
+                        //     {downloadOptions.map((option) => {
+                        <div className="editor-header__download-menu">
+                            <div className="editor-header__download-menu-head">
+                                <strong>Download design</strong>
+                                <small>Choose the best export format</small>
+                            </div>
 
-                {isPngMenuOpen && (
-                    <div className="editor-header__download-submenu">
-                        <div className="editor-header__download-menu-head editor-header__download-menu-head--small">
-    <strong>PNG options</strong>
-    <small>Select background mode</small>
-</div>
-<button
-    className="editor-header__download-option editor-header__download-option--large"
-    type="button"
-    disabled={isExporting}
-    onClick={async () => {
-        setIsDownloadOpen(false);
-        setIsPngMenuOpen(false);
-        await onDownloadProject('png');
-    }}
->
-    <span className="editor-header__download-option-text">
-        <strong>With background</strong>
-        <small>Use current canvas color</small>
-    </span>
-</button>
+                            {downloadOptions.map((option) => {
+                                if (option.type === 'png-group') {
+                                    return (
+                                        <div
+                                            className="editor-header__download-option-wrap"
+                                            key="png"
+                                            onMouseEnter={() =>
+                                                setIsPngMenuOpen(true)
+                                            }
+                                            onMouseLeave={() =>
+                                                setIsPngMenuOpen(false)
+                                            }
+                                        >
+                                            <button
+                                                className="editor-header__download-option"
+                                                type="button"
+                                                disabled={isExporting}
+                                                onClick={() =>
+                                                    setIsPngMenuOpen(
+                                                        (currentValue) =>
+                                                            !currentValue,
+                                                    )
+                                                }
+                                            >
+                                                <span className="editor-header__download-option-text">
+                                                    <strong>
+                                                        {option.label}
+                                                    </strong>
+                                                    <small>
+                                                        {option.description}
+                                                    </small>
+                                                </span>
 
-                        <button
-                            className="editor-header__download-option"
-                            type="button"
-                            disabled={isExporting}
-                            onClick={async () => {
-                                setIsDownloadOpen(false);
-                                setIsPngMenuOpen(false);
-                                await onDownloadProject('png-transparent');
-                            }}
-                        >
-                            <span className="editor-header__download-option-text">
-    <strong>Transparent</strong>
-    <small>No background color</small>
-</span>
-                        </button>
-                    </div>
-                )}
-            </div>
-        );
-    }
+                                                <span className="editor-header__download-option-arrow">
+                                                    ›
+                                                </span>
+                                            </button>
 
-    return (
-        <button
-            className="editor-header__download-option"
-            type="button"
-            key={option.format}
-            disabled={isExporting}
-            onClick={async () => {
-                setIsDownloadOpen(false);
-                await onDownloadProject(option.format);
-            }}
-        >
-            <span className="editor-header__download-option-text">
-    <strong>{option.label}</strong>
-    <small>{option.description}</small>
-</span>
-        </button>
-    );
-})}
-<div className="editor-header__download-menu-note">
-    Files are saved directly to your device
-</div>
-        </div>
-    )}
-</div>
+                                            {isPngMenuOpen && (
+                                                <div className="editor-header__download-submenu">
+                                                    <div className="editor-header__download-menu-head editor-header__download-menu-head--small">
+                                                        <strong>
+                                                            PNG options
+                                                        </strong>
+                                                        <small>
+                                                            Select background
+                                                            mode
+                                                        </small>
+                                                    </div>
+                                                    <button
+                                                        className="editor-header__download-option editor-header__download-option--large"
+                                                        type="button"
+                                                        disabled={isExporting}
+                                                        onClick={async () => {
+                                                            setIsDownloadOpen(
+                                                                false,
+                                                            );
+                                                            setIsPngMenuOpen(
+                                                                false,
+                                                            );
+                                                            await onDownloadProject(
+                                                                'png',
+                                                            );
+                                                        }}
+                                                    >
+                                                        <span className="editor-header__download-option-text">
+                                                            <strong>
+                                                                With background
+                                                            </strong>
+                                                            <small>
+                                                                Use current
+                                                                canvas color
+                                                            </small>
+                                                        </span>
+                                                    </button>
+
+                                                    <button
+                                                        className="editor-header__download-option"
+                                                        type="button"
+                                                        disabled={isExporting}
+                                                        onClick={async () => {
+                                                            setIsDownloadOpen(
+                                                                false,
+                                                            );
+                                                            setIsPngMenuOpen(
+                                                                false,
+                                                            );
+                                                            await onDownloadProject(
+                                                                'png-transparent',
+                                                            );
+                                                        }}
+                                                    >
+                                                        <span className="editor-header__download-option-text">
+                                                            <strong>
+                                                                Transparent
+                                                            </strong>
+                                                            <small>
+                                                                No background
+                                                                color
+                                                            </small>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <button
+                                        className="editor-header__download-option"
+                                        type="button"
+                                        key={option.format}
+                                        disabled={isExporting}
+                                        onClick={async () => {
+                                            setIsDownloadOpen(false);
+                                            await onDownloadProject(
+                                                option.format,
+                                            );
+                                        }}
+                                    >
+                                        <span className="editor-header__download-option-text">
+                                            <strong>{option.label}</strong>
+                                            <small>{option.description}</small>
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                            <div className="editor-header__download-menu-note">
+                                Files are saved directly to your device
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </header>
     );

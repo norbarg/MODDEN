@@ -154,13 +154,6 @@
     }
 }
 
-
-
-
-
-
-
-
 .editor-header__download-wrap {
     position: relative;
     display: inline-flex;
@@ -405,4 +398,32 @@
         rgba(255, 75, 31, 0.08),
         rgba(241, 244, 245, 0.85)
     );
+}
+
+.editor-header__hotkey-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.editor-header__hotkey {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 100;
+
+    padding: 4px 7px;
+    border-radius: 7px;
+
+    background: #ff3d00;
+    color: #ffffff;
+
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 600;
+    white-space: nowrap;
+
+    box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
+    transform: translateX(-50%);
+    pointer-events: none;
 }

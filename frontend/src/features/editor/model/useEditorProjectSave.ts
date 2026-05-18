@@ -22,6 +22,7 @@ type UseEditorProjectSaveParams = {
     onTemplateSaved: (template: WorkspaceTemplate | null) => void;
     onSceneSaved: () => void;
     onSaveModalClose: () => void;
+    getThumbnailUrl?: () => string | null | Promise<string | null>;
 };
 
 export function useEditorProjectSave({
@@ -32,6 +33,7 @@ export function useEditorProjectSave({
     onTemplateSaved,
     onSceneSaved,
     onSaveModalClose,
+    getThumbnailUrl,
 }: UseEditorProjectSaveParams) {
     const [isSaving, setIsSaving] = useState(false);
 
@@ -43,11 +45,15 @@ export function useEditorProjectSave({
         try {
             setIsSaving(true);
 
+            const thumbnailUrl =
+                (await getThumbnailUrl?.()) ?? project.thumbnailUrl ?? null;
+
             const updatedProject = await projectsApi.updateProject(project.id, {
                 title: project.title,
                 canvasWidth: project.canvasWidth,
                 canvasHeight: project.canvasHeight,
                 sceneJson: scene,
+                thumbnailUrl,
             });
 
             onProjectSaved(updatedProject);
@@ -59,7 +65,7 @@ export function useEditorProjectSave({
                     canvasWidth: updatedProject.canvasWidth,
                     canvasHeight: updatedProject.canvasHeight,
                     sceneJson: scene,
-                    thumbnailUrl: updatedProject.thumbnailUrl ?? null,
+                    thumbnailUrl,
                     isPublic: options.isPublic,
                 };
 

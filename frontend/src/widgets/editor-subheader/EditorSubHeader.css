@@ -237,12 +237,35 @@
     margin-right: 5px;
 }
 
-.editor-subheader__text-size strong {
-    min-width: 31px;
-    text-align: center;
+.editor-subheader__text-size-input {
+    width: 42px;
+    height: 28px;
+    border: 0;
+    padding: 0;
+
+    background: transparent;
     color: #000000;
     font-size: 16px;
     font-weight: 600;
+    line-height: 1;
+    text-align: center;
+
+    outline: none;
+}
+
+.editor-subheader__text-size-input::-webkit-outer-spin-button,
+.editor-subheader__text-size-input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.editor-subheader__text-size-input[type='number'] {
+    appearance: textfield;
+}
+
+.editor-subheader__text-size-input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 .editor-subheader__text-size-button {
@@ -293,7 +316,7 @@
         0 0 0 1px rgba(112, 141, 150, 0.14);
 }
 
- .editor-subheader__dropdown {
+.editor-subheader__dropdown {
     position: relative;
     height: 40px;
     z-index: 60;
@@ -357,7 +380,7 @@
     transform: rotate(180deg);
 }
 
- .editor-subheader__dropdown-menu {
+.editor-subheader__dropdown-menu {
     position: absolute;
     top: calc(100% + 10px);
     left: 0;
@@ -379,7 +402,7 @@
     transform-origin: top left;
 }
 
- .editor-subheader__dropdown-menu--font {
+.editor-subheader__dropdown-menu--font {
     width: 220px;
     max-height: 310px;
 
@@ -458,6 +481,35 @@
 
 .editor-subheader__dropdown-menu--font::-webkit-scrollbar-thumb:hover {
     background: rgba(112, 141, 150, 0.6);
+}
+
+.editor-subheader--object
+    .editor-color-picker-popover
+    .editor-color-picker-popover__eyedropper
+    img {
+    filter: invert(15%) sepia(23%) saturate(2253%) hue-rotate(182deg)
+        brightness(37%) contrast(92%);
+}
+
+.editor-subheader__hotkey {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 12px;
+    z-index: 100;
+
+    padding: 4px 7px;
+    border-radius: 7px;
+
+    background: #ff3d00;
+    color: #ffffff;
+
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 600;
+    white-space: nowrap;
+
+    box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
+    pointer-events: none;
 }
 
 @keyframes editor-subheader-dropdown-show {

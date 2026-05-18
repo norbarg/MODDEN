@@ -36,20 +36,27 @@ function downloadDataUrl(dataUrl: string, fileName: string) {
     link.remove();
 }
 
-async function createExportCanvas(
+async function dataUrlToBlob(dataUrl: string) {
+    const response = await fetch(dataUrl);
+    return response.blob();
+}
+
+export async function createExportCanvas(
     project: WorkspaceProject,
     scene: EditorScene,
     transparentBackground = false,
 ) {
     const canvasElement = document.createElement('canvas');
 
-const canvas = new StaticCanvas(canvasElement, {
-    width: project.canvasWidth,
-    height: project.canvasHeight,
-    backgroundColor: transparentBackground ? undefined : scene.background.color,
-    preserveObjectStacking: true,
-    enableRetinaScaling: false,
-});
+    const canvas = new StaticCanvas(canvasElement, {
+        width: project.canvasWidth,
+        height: project.canvasHeight,
+        backgroundColor: transparentBackground
+            ? undefined
+            : scene.background.color,
+        preserveObjectStacking: true,
+        enableRetinaScaling: false,
+    });
 
     const canvasObjects = await Promise.all(
         scene.objects.map((object) => createCanvasObject(object)),
@@ -102,7 +109,7 @@ export async function exportEditorScene({
 }: ExportEditorSceneOptions) {
     const isTransparentPng = format === 'png-transparent';
 
-const canvas = await createExportCanvas(project, scene, isTransparentPng);
+    const canvas = await createExportCanvas(project, scene, isTransparentPng);
     const safeTitle = sanitizeFileName(project.title || 'modden-project');
 
     try {
@@ -150,6 +157,37 @@ const canvas = await createExportCanvas(project, scene, isTransparentPng);
         });
 
         downloadDataUrl(dataUrl, `${safeTitle}.${extension}`);
+    } finally {
+        void canvas.dispose();
+    }
+}
+export async function exportEditorSceneAsFile({
+    project,
+    scene,
+    format = 'png',
+}: {
+    project: WorkspaceProject;
+    scene: EditorScene;
+    format?: 'png' | 'jpg' | 'webp';
+}) {
+    const canvas = await createExportCanvas(project, scene, false);
+    const safeTitle = sanitizeFileName(project.title || 'modden-project');
+
+    try {
+        const { fabricFormat, extension, quality } =
+            getImageExportOptions(format);
+
+        const dataUrl = canvas.toDataURL({
+            format: fabricFormat as never,
+            quality,
+            multiplier: 2,
+        });
+
+        const blob = await dataUrlToBlob(dataUrl);
+
+        return new File([blob], `${safeTitle}.${extension}`, {
+            type: blob.type || `image/${extension}`,
+        });
     } finally {
         void canvas.dispose();
     }
