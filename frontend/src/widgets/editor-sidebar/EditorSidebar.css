@@ -83,3 +83,104 @@
         font-size: 11px;
     }
 }
+@media (max-width: 760px) {
+    .editor-sidebar {
+        inset: auto 10px 10px 10px;
+        width: auto;
+        height: 74px;
+        min-height: 0;
+        padding: 8px 10px;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        border-radius: 28px;
+        box-shadow: 0 14px 36px rgba(23, 20, 52, 0.28);
+
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .editor-sidebar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .editor-sidebar__back {
+        width: 52px;
+        min-width: 52px;
+        height: 56px;
+        padding: 0;
+        border-radius: 18px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
+        font-size: 10px;
+        line-height: 1;
+    }
+
+    .editor-sidebar__nav {
+        margin-top: 0;
+        height: 56px;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .editor-sidebar__link {
+        width: 52px;
+        min-width: 52px;
+        height: 56px;
+        min-height: 56px;
+        padding: 0;
+
+        border-radius: 18px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
+        font-size: 10px;
+        line-height: 1;
+    }
+
+    .editor-sidebar__icon {
+        width: 21px;
+        height: 21px;
+    }
+}
+
+@media (max-width: 390px) {
+    .editor-sidebar {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        height: 70px;
+        padding: 7px 8px;
+        gap: 5px;
+    }
+
+    .editor-sidebar__back,
+    .editor-sidebar__link {
+        width: 48px;
+        min-width: 48px;
+        height: 54px;
+        min-height: 54px;
+        font-size: 9px;
+    }
+
+    .editor-sidebar__icon {
+        width: 20px;
+        height: 20px;
+    }
+}

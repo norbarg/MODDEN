@@ -427,3 +427,144 @@
     transform: translateX(-50%);
     pointer-events: none;
 }
+@media (max-width: 760px) {
+    .editor-header {
+        height: 58px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    .editor-header__left,
+    .editor-header__right {
+        gap: 8px;
+    }
+
+    .editor-header__left {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .editor-header__right {
+        flex: 0 0 auto;
+    }
+
+    .editor-header__meta-button {
+        font-size: 12px;
+    }
+
+    .editor-header__size {
+        max-width: 76px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .editor-header__title {
+        max-width: 92px;
+    }
+
+    .editor-header__divider {
+        width: 2px;
+        height: 24px;
+    }
+
+    .editor-header__icon-button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .editor-header__icon-button img {
+        height: 17px;
+    }
+
+    .editor-header__save {
+        height: 28px;
+        padding: 0 10px;
+        font-size: 11px;
+    }
+
+    .editor-header__share,
+    .editor-header__download {
+        width: 32px;
+        height: 28px;
+        padding: 0;
+        justify-content: center;
+        gap: 0;
+        font-size: 0;
+    }
+
+    .editor-header__share img,
+    .editor-header__download img {
+        width: 15px;
+        height: 15px;
+    }
+
+    .editor-header__download-menu {
+        right: 0;
+        width: 220px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .editor-header__download-submenu {
+        top: calc(100% + 8px);
+        right: 0;
+        width: 220px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .editor-header__hotkey {
+        top: calc(100% + 6px);
+    }
+}
+
+@media (max-width: 520px) {
+    .editor-header__size {
+        display: none;
+    }
+
+    .editor-header__left .editor-header__divider {
+        display: none;
+    }
+
+    .editor-header__title {
+        max-width: 92px;
+    }
+
+    .unredo {
+        display: none;
+    }
+}
+
+@media (max-width: 390px) {
+    .editor-header {
+        padding: 0 8px;
+    }
+
+    .editor-header__title {
+        max-width: 72px;
+    }
+
+    .editor-header__save {
+        padding: 0 8px;
+    }
+}
+@media (max-width: 760px) {
+    .editor-header {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 8px;
+    }
+
+    .editor-header__left {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .editor-header__right {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+}

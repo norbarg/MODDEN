@@ -192,14 +192,6 @@ export function HomePage() {
     };
 
     const handleDeleteProject = async (project: WorkspaceProject) => {
-        const shouldDelete = window.confirm(
-            `Delete project "${project.title}"?`,
-        );
-
-        if (!shouldDelete) {
-            return;
-        }
-
         try {
             await projectsApi.deleteProject(project.id);
 
@@ -404,67 +396,81 @@ export function HomePage() {
                                 />
                             </label>
                             <div
-    className={`workspace-sort ${isSortOpen ? 'workspace-sort--open' : ''}`}
-    onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-            setIsSortOpen(false);
-        }
-    }}
->
-    <button
-        className="workspace-sort__button"
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isSortOpen}
-        onClick={() => setIsSortOpen((isOpen) => !isOpen)}
-    >
-        <span className="workspace-sort__label">
-            {SORT_LABELS[sortMode]}
-        </span>
-
-        <img
-            className="workspace-sort__icon"
-            src={arrowDownIcon}
-            alt=""
-            aria-hidden="true"
-        />
-    </button>
-
-    {isSortOpen && (
-        <div className="workspace-sort__menu" role="listbox">
-            {SORT_OPTIONS.map((option) => {
-                const isSelected = option === sortMode;
-
-                return (
-                    <button
-                        key={option}
-                        className={`workspace-sort__option ${
-                            isSelected ? 'workspace-sort__option--active' : ''
-                        }`}
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => {
-                            setSortMode(option);
-                            setIsSortOpen(false);
-                        }}
-                    >
-                        <span>{SORT_LABELS[option]}</span>
-
-                        {isSelected && (
-                            <span
-                                className="workspace-sort__check"
-                                aria-hidden="true"
+                                className={`workspace-sort ${isSortOpen ? 'workspace-sort--open' : ''}`}
+                                onBlur={(event) => {
+                                    if (
+                                        !event.currentTarget.contains(
+                                            event.relatedTarget,
+                                        )
+                                    ) {
+                                        setIsSortOpen(false);
+                                    }
+                                }}
                             >
-                                ●
-                            </span>
-                        )}
-                    </button>
-                );
-            })}
-        </div>
-    )}
-</div>
+                                <button
+                                    className="workspace-sort__button"
+                                    type="button"
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isSortOpen}
+                                    onClick={() =>
+                                        setIsSortOpen((isOpen) => !isOpen)
+                                    }
+                                >
+                                    <span className="workspace-sort__label">
+                                        {SORT_LABELS[sortMode]}
+                                    </span>
+
+                                    <img
+                                        className="workspace-sort__icon"
+                                        src={arrowDownIcon}
+                                        alt=""
+                                        aria-hidden="true"
+                                    />
+                                </button>
+
+                                {isSortOpen && (
+                                    <div
+                                        className="workspace-sort__menu"
+                                        role="listbox"
+                                    >
+                                        {SORT_OPTIONS.map((option) => {
+                                            const isSelected =
+                                                option === sortMode;
+
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    className={`workspace-sort__option ${
+                                                        isSelected
+                                                            ? 'workspace-sort__option--active'
+                                                            : ''
+                                                    }`}
+                                                    type="button"
+                                                    role="option"
+                                                    aria-selected={isSelected}
+                                                    onClick={() => {
+                                                        setSortMode(option);
+                                                        setIsSortOpen(false);
+                                                    }}
+                                                >
+                                                    <span>
+                                                        {SORT_LABELS[option]}
+                                                    </span>
+
+                                                    {isSelected && (
+                                                        <span
+                                                            className="workspace-sort__check"
+                                                            aria-hidden="true"
+                                                        >
+                                                            ●
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

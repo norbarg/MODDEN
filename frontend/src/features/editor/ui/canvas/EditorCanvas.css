@@ -115,3 +115,43 @@
     box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
     pointer-events: none;
 }
+@media (max-width: 760px) {
+    .editor-canvas-area {
+        min-height: calc(100vh - 58px);
+    }
+
+    .editor-canvas-area__stage {
+        padding: 96px 18px 190px;
+        place-items: center;
+    }
+
+    .editor-zoom-controls {
+        right: 14px;
+        bottom: 102px;
+        z-index: 25;
+        width: 40px;
+        padding: 8px 0;
+        gap: 6px;
+        border-radius: 14px;
+    }
+
+    .editor-zoom-controls button {
+        font-size: 20px;
+    }
+
+    .editor-zoom-controls__hotkey {
+        right: calc(100% + 8px);
+        bottom: 8px;
+    }
+}
+
+@media (max-width: 390px) {
+    .editor-canvas-area__stage {
+        padding: 90px 12px 180px;
+    }
+
+    .editor-zoom-controls {
+        right: 10px;
+        bottom: 96px;
+    }
+}

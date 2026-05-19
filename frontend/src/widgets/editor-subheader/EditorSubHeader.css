@@ -511,15 +511,257 @@
     box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
     pointer-events: none;
 }
+@media (max-width: 760px) {
+    .editor-subheader {
+        left: auto;
+        right: 12px;
+        top: 17px;
+        z-index: 300;
 
-@keyframes editor-subheader-dropdown-show {
-    from {
-        opacity: 0;
-        transform: translateY(-8px) scale(0.96);
+        width: max-content;
+        max-width: calc(100vw - 24px);
+        min-width: 0;
+        height: 52px;
+        padding: 0 14px;
+
+        justify-content: center;
+        gap: 12px;
+
+        border-radius: 26px;
+        overflow: visible;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+    .editor-subheader--object {
+        max-width: calc(100vw - 24px);
+    }
+
+    .editor-subheader--canvas {
+        width: 58px;
+        min-width: 58px;
+        padding: 0;
+        right: 12px;
+        overflow: visible;
+    }
+
+    .editor-subheader__button {
+        width: 24px;
+        min-width: 24px;
+        height: 24px;
+        flex: 0 0 auto;
+    }
+
+    .editor-subheader__color {
+        width: 20px;
+        min-width: 20px;
+        height: 20px;
+        flex: 0 0 auto;
+    }
+
+    .editor-subheader__color span {
+        width: 20px;
+        height: 20px;
+    }
+
+    .editor-subheader__divider {
+        flex: 0 0 2px;
+        width: 2px;
+        min-width: 2px;
+        height: 24px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font) {
+        left: 8px;
+        right: 8px;
+        top: 17px;
+
+        width: auto;
+        max-width: calc(100vw - 16px);
+        height: 52px;
+        padding: 0 10px;
+
+        justify-content: flex-start;
+        gap: 8px;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .editor-subheader:has(
+            .editor-subheader__dropdown--font
+        )::-webkit-scrollbar {
+        display: none;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown--font {
+        width: 118px;
+        min-width: 118px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown--weight {
+        width: 92px;
+        min-width: 92px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown-button {
+        height: 38px;
+        padding: 0 8px;
+        gap: 6px;
+        font-size: 14px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown-arrow {
+        width: 10px;
+        height: 10px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__text-size {
+        min-width: 82px;
+        gap: 7px;
+        margin-right: 0;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__text-size-input {
+        width: 34px;
+        font-size: 14px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__text-size-button {
+        width: 13px;
+        height: 13px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__button {
+        width: 22px;
+        min-width: 22px;
+        height: 22px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__color {
+        width: 19px;
+        min-width: 19px;
+        height: 19px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__color
+        span {
+        width: 19px;
+        height: 19px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__divider {
+        flex: 0 0 2px;
+        width: 2px;
+        min-width: 2px;
+        height: 24px;
+    }
+
+    .editor-subheader__dropdown,
+    .editor-color-picker,
+    .editor-subheader__filters {
+        position: relative;
+        z-index: 310;
+    }
+
+    .editor-subheader__dropdown--font.editor-subheader__dropdown--open::before {
+        display: none;
+    }
+
+    .editor-subheader__dropdown-menu,
+    .editor-subheader--object .editor-color-picker-popover,
+    .editor-subheader--canvas .editor-color-picker-popover,
+    .editor-subheader__filters-popup {
+        position: fixed !important;
+
+        left: 12px !important;
+        right: 12px !important;
+        top: 128px !important;
+
+        width: auto !important;
+        max-width: none !important;
+
+        z-index: 999 !important;
+        transform: none !important;
+    }
+
+    .editor-subheader__dropdown-menu--font {
+        max-height: 250px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .editor-subheader__dropdown-menu--weight {
+        max-height: 220px !important;
+        overflow-y: auto !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .editor-subheader {
+        right: 8px;
+        max-width: calc(100vw - 16px);
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    .editor-subheader--canvas {
+        right: 8px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font) {
+        left: 6px;
+        right: 6px;
+        max-width: calc(100vw - 12px);
+        padding: 0 8px;
+        gap: 7px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown--font {
+        width: 104px;
+        min-width: 104px;
+    }
+
+    .editor-subheader:has(.editor-subheader__dropdown--font)
+        .editor-subheader__dropdown--weight {
+        width: 84px;
+        min-width: 84px;
+    }
+
+    .editor-subheader__dropdown-menu,
+    .editor-subheader--object .editor-color-picker-popover,
+    .editor-subheader--canvas .editor-color-picker-popover,
+    .editor-subheader__filters-popup {
+        left: 8px !important;
+        right: 8px !important;
+        top: 122px !important;
+    }
+}
+@media (max-width: 760px) {
+    .editor-subheader--canvas .editor-color-picker-popover {
+        padding: 14px 18px !important;
+        border-radius: 24px !important;
+    }
+
+    .editor-subheader--canvas .editor-color-picker-popover__quick-row {
+        justify-content: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .editor-subheader--canvas .editor-color-picker-popover__saturation {
+        height: 120px;
+        touch-action: none;
     }
 }

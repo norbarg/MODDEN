@@ -196,3 +196,34 @@
         width: 320px;
     }
 }
+@media (max-width: 760px) {
+    .editor-color-picker-popover {
+        width: auto;
+        max-width: none;
+        padding: 14px 18px;
+    }
+
+    .editor-color-picker-popover__quick-row {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .editor-color-picker-popover__advanced {
+        margin-top: 14px;
+    }
+
+    .editor-color-picker-popover__saturation {
+        height: 120px;
+        touch-action: none;
+        user-select: none;
+    }
+
+    .editor-color-picker-popover__hue {
+        touch-action: none;
+    }
+
+    .editor-color-picker-popover__control-row {
+        touch-action: none;
+    }
+}

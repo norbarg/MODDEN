@@ -1,5 +1,5 @@
-// src/shared/ui/google-auth-button/GoogleAuthButton.tsx
-import { GoogleLogin } from '@react-oauth/google';
+// src/features/workspace/ui/google-auth-button/GoogleAuthButton.tsx
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import googleLogo from '../../../../assets/google-logo.svg';
 import './GoogleAuthButton.css';
 
@@ -9,8 +9,10 @@ type GoogleAuthButtonProps = {
     onError: () => void;
 };
 
-export function GoogleAuthButton({
-    isLoading = false,
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+function GoogleSdkButton({
+    isLoading,
     onSuccess,
     onError,
 }: GoogleAuthButtonProps) {
@@ -42,5 +44,28 @@ export function GoogleAuthButton({
                 />
             </div>
         </div>
+    );
+}
+
+export function GoogleAuthButton(props: GoogleAuthButtonProps) {
+    if (!googleClientId) {
+        return (
+            <div className="google-auth-button">
+                <button
+                    className="google-auth-button__visual"
+                    type="button"
+                    disabled
+                >
+                    <img src={googleLogo} alt="" />
+                    <span>Google login unavailable</span>
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <GoogleOAuthProvider clientId={googleClientId}>
+            <GoogleSdkButton {...props} />
+        </GoogleOAuthProvider>
     );
 }

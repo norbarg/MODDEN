@@ -79,3 +79,49 @@
         height: 22px;
     }
 }
+@media (max-width: 760px) {
+    .workspace-sidebar {
+        inset: auto 12px 12px 12px;
+        width: auto;
+        height: 74px;
+        min-height: 0;
+        padding: 8px 12px;
+
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+        border-radius: 28px;
+        box-shadow: 0 12px 34px rgba(23, 20, 52, 0.28);
+    }
+
+    .workspace-sidebar__nav {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .workspace-sidebar__nav--bottom {
+        margin-top: 0;
+        margin-left: 8px;
+    }
+
+    .workspace-sidebar__link {
+        width: 58px;
+        min-height: 56px;
+        border-radius: 18px;
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .workspace-sidebar__link:hover {
+        transform: translateY(-2px);
+    }
+
+    .workspace-sidebar__icon {
+        width: 22px;
+        height: 22px;
+    }
+}
