@@ -139,6 +139,31 @@ type EditableTextCanvasObject = FabricObject & {
     hiddenTextarea?: HTMLTextAreaElement | null;
 };
 
+function lockHiddenTextareaPosition(target?: FabricObject) {
+    const textarea = (target as EditableTextCanvasObject | undefined)
+        ?.hiddenTextarea;
+
+    if (!textarea) {
+        return;
+    }
+
+    textarea.setAttribute('aria-hidden', 'true');
+
+    Object.assign(textarea.style, {
+        position: 'fixed',
+        left: '0px',
+        top: '0px',
+        width: '1px',
+        height: '1px',
+        maxWidth: '1px',
+        maxHeight: '1px',
+        opacity: '0',
+        overflow: 'hidden',
+        transform: 'none',
+        zIndex: '-1',
+    });
+}
+
 function preloadImage(src: string) {
     return new Promise<void>((resolve) => {
         const image = new Image();
@@ -288,6 +313,7 @@ export function useCanvasScene({
             backgroundColor: scene.background.color,
             selection: false,
             preserveObjectStacking: true,
+            hiddenTextareaContainer: canvasElement.parentElement ?? undefined,
         });
 
         canvasInstanceRef.current = canvas;
@@ -377,6 +403,8 @@ export function useCanvasScene({
                 return;
             }
 
+            lockHiddenTextareaPosition(event.target);
+
             const objectId = getEditorObjectId(event.target);
 
             if (!objectId) {
@@ -407,11 +435,20 @@ export function useCanvasScene({
             latestSceneRef.current = nextScene;
             latestOnSceneCommitRef.current(nextScene);
         };
+        const handleTextEditingEntered = (event: { target?: FabricObject }) => {
+            lockHiddenTextareaPosition(event.target);
+        };
+
+        const handleTextChanged = (event: { target?: FabricObject }) => {
+            lockHiddenTextareaPosition(event.target);
+        };
 
         canvas.on('selection:created', handleSelectionChange);
         canvas.on('selection:updated', handleSelectionChange);
         canvas.on('selection:cleared', handleSelectionCleared);
         canvas.on('object:modified', handleObjectModified);
+        canvas.on('text:editing:entered', handleTextEditingEntered);
+        canvas.on('text:changed', handleTextChanged);
         canvas.on('text:editing:exited', handleTextEditingExited);
 
         return () => {
@@ -419,6 +456,9 @@ export function useCanvasScene({
             canvas.off('selection:updated', handleSelectionChange);
             canvas.off('selection:cleared', handleSelectionCleared);
             canvas.off('object:modified', handleObjectModified);
+            canvas.off('text:editing:entered', handleTextEditingEntered);
+            canvas.off('text:changed', handleTextChanged);
+            canvas.off('text:editing:exited', handleTextEditingExited);
             canvas.off('text:editing:exited', handleTextEditingExited);
 
             canvasInstanceRef.current = null;

@@ -185,65 +185,73 @@ export function EditorCanvas({
         <section className="editor-canvas-area" ref={canvasAreaRef}>
             <div className="editor-canvas-area__stage">
                 <div
-                    ref={canvasRef}
-                    className={`editor-canvas ${
-                        activeDrawingTool ? 'editor-canvas--drawing' : ''
-                    } ${activeShapeType ? 'editor-canvas--placing-shape' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    onDragOver={(event) => {
-                        if (
-                            event.dataTransfer.types.includes(
-                                'application/modden-upload-image',
-                            ) ||
-                            event.dataTransfer.types.includes(
-                                'application/modden-stock-image',
-                            )
-                        ) {
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = 'copy';
-                        }
-                    }}
-                    onDrop={handleUploadedImageDrop}
-                    onPointerDown={(event) => {
-                        if (activeDrawingTool === 'eraser') {
-                            handlePointerDown(event);
-                            return;
-                        }
-
-                        handleShapePlacement(event);
-                    }}
-                    onPointerMove={(event) => {
-                        if (activeDrawingTool === 'eraser') {
-                            handlePointerMove(event);
-                        }
-                    }}
-                    onPointerUp={(event) => {
-                        if (activeDrawingTool === 'eraser') {
-                            handlePointerUp(event);
-                        }
-                    }}
-                    onPointerCancel={(event) => {
-                        if (activeDrawingTool === 'eraser') {
-                            handlePointerUp(event);
-                        }
-                    }}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            onCanvasSelect();
-                        }
-                    }}
+                    className="editor-canvas-scale-box"
                     style={{
-                        width: project.canvasWidth,
-                        height: project.canvasHeight,
-                        background: scene.background.color,
-                        transform: `scale(${canvasScale})`,
+                        width: project.canvasWidth * canvasScale,
+                        height: project.canvasHeight * canvasScale,
                     }}
                 >
-                    <canvas
-                        ref={fabricCanvasRef}
-                        className="editor-canvas__fabric-layer"
-                    />
+                    <div
+                        ref={canvasRef}
+                        className={`editor-canvas ${
+                            activeDrawingTool ? 'editor-canvas--drawing' : ''
+                        } ${activeShapeType ? 'editor-canvas--placing-shape' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        onDragOver={(event) => {
+                            if (
+                                event.dataTransfer.types.includes(
+                                    'application/modden-upload-image',
+                                ) ||
+                                event.dataTransfer.types.includes(
+                                    'application/modden-stock-image',
+                                )
+                            ) {
+                                event.preventDefault();
+                                event.dataTransfer.dropEffect = 'copy';
+                            }
+                        }}
+                        onDrop={handleUploadedImageDrop}
+                        onPointerDown={(event) => {
+                            if (activeDrawingTool === 'eraser') {
+                                handlePointerDown(event);
+                                return;
+                            }
+
+                            handleShapePlacement(event);
+                        }}
+                        onPointerMove={(event) => {
+                            if (activeDrawingTool === 'eraser') {
+                                handlePointerMove(event);
+                            }
+                        }}
+                        onPointerUp={(event) => {
+                            if (activeDrawingTool === 'eraser') {
+                                handlePointerUp(event);
+                            }
+                        }}
+                        onPointerCancel={(event) => {
+                            if (activeDrawingTool === 'eraser') {
+                                handlePointerUp(event);
+                            }
+                        }}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                onCanvasSelect();
+                            }
+                        }}
+                        style={{
+                            width: project.canvasWidth,
+                            height: project.canvasHeight,
+                            background: scene.background.color,
+                            transform: `scale(${canvasScale})`,
+                        }}
+                    >
+                        <canvas
+                            ref={fabricCanvasRef}
+                            className="editor-canvas__fabric-layer"
+                        />
+                    </div>
                 </div>
             </div>
 
