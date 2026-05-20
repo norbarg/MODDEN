@@ -118,7 +118,13 @@ export function TemplateCard({
                 type="button"
                 onClick={() => onClick?.(template)}
             >
-                <div className="template-card__preview">
+                <div
+                    className={`template-card__preview ${
+                        template.thumbnailUrl
+                            ? ''
+                            : 'template-card__preview--empty'
+                    }`}
+                >
                     <TemplatePreview template={template} />
                 </div>
 

@@ -1,5 +1,5 @@
 // src/pages/editor-page/EditorPage.tsx
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { projectsApi } from '../../shared/api/projectsApi';
 import { templatesApi } from '../../shared/api/templatesApi';
@@ -47,6 +47,7 @@ import { UnsavedChangesModal } from '../../features/editor/ui/modals/unsaved-cha
 import { ShareProjectModal } from '../../features/editor/ui/modals/share-project-modal';
 import { useRecentColors } from '../../features/editor/ui/color-picker/useRecentColors';
 import { duplicateEditorObject } from '../../features/editor/ui/duplicate/editorObjectActions';
+import { exportCanvasThumbnail } from '../../features/editor/ui/canvas/exportCanvasThumbnail';
 
 import {
     exportEditorScene,
@@ -120,15 +121,6 @@ export function EditorPage() {
 
         return first.every((value, index) => value === second[index]);
     }
-
-    const thumbnailExporterRef = useRef<(() => string | null) | null>(null);
-
-    const handleThumbnailExporterChange = useCallback(
-        (exporter: (() => string | null) | null) => {
-            thumbnailExporterRef.current = exporter;
-        },
-        [],
-    );
 
     const handleObjectSelect = (objectIds: string[]) => {
         colorEditingObjectIdRef.current = null;
@@ -232,7 +224,16 @@ export function EditorPage() {
         project,
         linkedTemplate,
         scene,
-        getThumbnailUrl: () => thumbnailExporterRef.current?.() ?? null,
+        getThumbnailUrl: () => {
+            if (!project) {
+                return null;
+            }
+
+            return exportCanvasThumbnail({
+                project,
+                scene,
+            });
+        },
         onProjectSaved: (updatedProject) => {
             setProject(updatedProject);
             setIsMetaDirty(false);
@@ -898,7 +899,6 @@ export function EditorPage() {
                 }
                 onSelectedTextColorPreview={handleSelectedTextColorPreview}
                 onSelectedTextColorCommit={handleSelectedTextColorCommit}
-                onThumbnailExporterChange={handleThumbnailExporterChange}
                 onShareProject={() => setIsShareModalOpen(true)}
                 showHotkeyHints={isHotkeyHintsVisible}
             />

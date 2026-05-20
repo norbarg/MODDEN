@@ -307,77 +307,90 @@ export function TemplatesPage() {
                         />
                     </label>
                     <div
-    className={`templates-page__filter ${
-        isFilterOpen ? 'templates-page__filter--open' : ''
-    }`}
-    onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-            setIsFilterOpen(false);
-        }
-    }}
->
-    <button
-        className="templates-page__filter-button"
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isFilterOpen}
-        onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
-    >
-        <span className="templates-page__filter-label">
-            {getFilterLabel(activeFilter)}
-        </span>
-
-        <img
-            src={arrowDownIcon}
-            alt=""
-            aria-hidden="true"
-            className="templates-page__filter-icon"
-        />
-    </button>
-
-    {isFilterOpen && (
-        <div className="templates-page__filter-menu" role="listbox">
-            {TEMPLATE_FILTERS.map((filter) => {
-                const isSelected = filter.value === activeFilter;
-
-                return (
-                    <button
-                        key={filter.value}
-                        className={`templates-page__filter-option ${
-                            isSelected
-                                ? 'templates-page__filter-option--active'
-                                : ''
+                        className={`templates-page__filter ${
+                            isFilterOpen ? 'templates-page__filter--open' : ''
                         }`}
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => {
-                            handleFilterChange(filter.value);
-                            setIsFilterOpen(false);
+                        onBlur={(event) => {
+                            if (
+                                !event.currentTarget.contains(
+                                    event.relatedTarget,
+                                )
+                            ) {
+                                setIsFilterOpen(false);
+                            }
                         }}
                     >
-                        <span>{filter.label}</span>
-
-                        {isSelected && (
-                            <span
-                                className="templates-page__filter-check"
-                                aria-hidden="true"
-                            >
-                                ●
+                        <button
+                            className="templates-page__filter-button"
+                            type="button"
+                            aria-haspopup="listbox"
+                            aria-expanded={isFilterOpen}
+                            onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
+                        >
+                            <span className="templates-page__filter-label">
+                                {getFilterLabel(activeFilter)}
                             </span>
+
+                            <img
+                                src={arrowDownIcon}
+                                alt=""
+                                aria-hidden="true"
+                                className="templates-page__filter-icon"
+                            />
+                        </button>
+
+                        {isFilterOpen && (
+                            <div
+                                className="templates-page__filter-menu"
+                                role="listbox"
+                            >
+                                {TEMPLATE_FILTERS.map((filter) => {
+                                    const isSelected =
+                                        filter.value === activeFilter;
+
+                                    return (
+                                        <button
+                                            key={filter.value}
+                                            className={`templates-page__filter-option ${
+                                                isSelected
+                                                    ? 'templates-page__filter-option--active'
+                                                    : ''
+                                            }`}
+                                            type="button"
+                                            role="option"
+                                            aria-selected={isSelected}
+                                            onClick={() => {
+                                                handleFilterChange(
+                                                    filter.value,
+                                                );
+                                                setIsFilterOpen(false);
+                                            }}
+                                        >
+                                            <span>{filter.label}</span>
+
+                                            {isSelected && (
+                                                <span
+                                                    className="templates-page__filter-check"
+                                                    aria-hidden="true"
+                                                >
+                                                    ●
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         )}
-                    </button>
-                );
-            })}
-        </div>
-    )}
-</div>
+                    </div>
                 </div>
             </section>
 
             <section className="templates-page__grid">
                 {isLoading && (
                     <>
+                        <div className="templates-page__skeleton" />
+                        <div className="templates-page__skeleton" />
+                        <div className="templates-page__skeleton" />
                         <div className="templates-page__skeleton" />
                         <div className="templates-page__skeleton" />
                         <div className="templates-page__skeleton" />

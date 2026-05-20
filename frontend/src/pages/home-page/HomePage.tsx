@@ -484,6 +484,11 @@ export function HomePage() {
                             <>
                                 <div className="workspace-project-skeleton" />
                                 <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
+                                <div className="workspace-project-skeleton" />
                             </>
                         )}
 

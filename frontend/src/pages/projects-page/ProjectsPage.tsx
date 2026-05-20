@@ -208,77 +208,87 @@ export function ProjectsPage() {
                         />
                     </label>
                     <div
-    className={`projects-page__sort ${
-        isSortOpen ? 'projects-page__sort--open' : ''
-    }`}
-    onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-            setIsSortOpen(false);
-        }
-    }}
->
-    <button
-        className="projects-page__sort-button"
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isSortOpen}
-        onClick={() => setIsSortOpen((isOpen) => !isOpen)}
-    >
-        <span className="projects-page__sort-label">
-            {SORT_LABELS[sortMode]}
-        </span>
-
-        <img
-            src={arrowDownIcon}
-            alt=""
-            aria-hidden="true"
-            className="projects-page__sort-icon"
-        />
-    </button>
-
-    {isSortOpen && (
-        <div className="projects-page__sort-menu" role="listbox">
-            {SORT_OPTIONS.map((option) => {
-                const isSelected = option === sortMode;
-
-                return (
-                    <button
-                        key={option}
-                        className={`projects-page__sort-option ${
-                            isSelected
-                                ? 'projects-page__sort-option--active'
-                                : ''
+                        className={`projects-page__sort ${
+                            isSortOpen ? 'projects-page__sort--open' : ''
                         }`}
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => {
-                            setSortMode(option);
-                            setIsSortOpen(false);
+                        onBlur={(event) => {
+                            if (
+                                !event.currentTarget.contains(
+                                    event.relatedTarget,
+                                )
+                            ) {
+                                setIsSortOpen(false);
+                            }
                         }}
                     >
-                        <span>{SORT_LABELS[option]}</span>
-
-                        {isSelected && (
-                            <span
-                                className="projects-page__sort-check"
-                                aria-hidden="true"
-                            >
-                                ●
+                        <button
+                            className="projects-page__sort-button"
+                            type="button"
+                            aria-haspopup="listbox"
+                            aria-expanded={isSortOpen}
+                            onClick={() => setIsSortOpen((isOpen) => !isOpen)}
+                        >
+                            <span className="projects-page__sort-label">
+                                {SORT_LABELS[sortMode]}
                             </span>
+
+                            <img
+                                src={arrowDownIcon}
+                                alt=""
+                                aria-hidden="true"
+                                className="projects-page__sort-icon"
+                            />
+                        </button>
+
+                        {isSortOpen && (
+                            <div
+                                className="projects-page__sort-menu"
+                                role="listbox"
+                            >
+                                {SORT_OPTIONS.map((option) => {
+                                    const isSelected = option === sortMode;
+
+                                    return (
+                                        <button
+                                            key={option}
+                                            className={`projects-page__sort-option ${
+                                                isSelected
+                                                    ? 'projects-page__sort-option--active'
+                                                    : ''
+                                            }`}
+                                            type="button"
+                                            role="option"
+                                            aria-selected={isSelected}
+                                            onClick={() => {
+                                                setSortMode(option);
+                                                setIsSortOpen(false);
+                                            }}
+                                        >
+                                            <span>{SORT_LABELS[option]}</span>
+
+                                            {isSelected && (
+                                                <span
+                                                    className="projects-page__sort-check"
+                                                    aria-hidden="true"
+                                                >
+                                                    ●
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         )}
-                    </button>
-                );
-            })}
-        </div>
-    )}
-</div>
+                    </div>
                 </div>
             </section>
 
             <section className="projects-page__grid">
                 {isLoading && (
                     <>
+                        <div className="projects-page__skeleton" />
+                        <div className="projects-page__skeleton" />
+                        <div className="projects-page__skeleton" />
                         <div className="projects-page__skeleton" />
                         <div className="projects-page__skeleton" />
                         <div className="projects-page__skeleton" />

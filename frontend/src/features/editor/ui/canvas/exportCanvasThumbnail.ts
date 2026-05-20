@@ -1,39 +1,55 @@
 // src/features/editor/ui/canvas/exportCanvasThumbnail.ts
-import type { Canvas } from 'fabric';
+import { StaticCanvas } from 'fabric';
+import type { WorkspaceProject } from '../../../../shared/types/workspace';
+import type { EditorScene } from '../../model/editorTypes';
+import { createCanvasObject } from './canvasObjects';
 
 type ExportCanvasThumbnailParams = {
-    canvas: Canvas | null;
-    backgroundColor: string;
+    project: WorkspaceProject;
+    scene: EditorScene;
 };
 
-export function exportCanvasThumbnail({
-    canvas,
-    backgroundColor,
+export async function exportCanvasThumbnail({
+    project,
+    scene,
 }: ExportCanvasThumbnailParams) {
-    if (!canvas) {
-        return null;
-    }
+    const canvasElement = document.createElement('canvas');
+
+    const thumbnailCanvas = new StaticCanvas(canvasElement, {
+        width: project.canvasWidth,
+        height: project.canvasHeight,
+        backgroundColor: scene.background.color,
+        preserveObjectStacking: true,
+        enableRetinaScaling: false,
+    });
 
     try {
-        const exportedCanvas = canvas.toCanvasElement(0.35);
+        const canvasObjects = await Promise.all(
+            scene.objects.map((object) => createCanvasObject(object)),
+        );
 
-        const thumbnailCanvas = document.createElement('canvas');
-        thumbnailCanvas.width = exportedCanvas.width;
-        thumbnailCanvas.height = exportedCanvas.height;
+        canvasObjects.forEach((object) => {
+            object.set({
+                selectable: false,
+                evented: false,
+                hasControls: false,
+                hasBorders: false,
+            });
 
-        const context = thumbnailCanvas.getContext('2d');
+            thumbnailCanvas.add(object);
+        });
 
-        if (!context) {
-            return null;
-        }
+        thumbnailCanvas.renderAll();
 
-        context.fillStyle = backgroundColor;
-        context.fillRect(0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-        context.drawImage(exportedCanvas, 0, 0);
-
-        return thumbnailCanvas.toDataURL('image/jpeg', 0.82);
+        return thumbnailCanvas.toDataURL({
+            format: 'jpeg',
+            quality: 0.82,
+            multiplier: 0.35,
+        });
     } catch (err) {
         console.error('Failed to export canvas thumbnail:', err);
         return null;
+    } finally {
+        void thumbnailCanvas.dispose();
     }
 }
