@@ -122,7 +122,6 @@ export function EditorLayout({
     onSelectedTextColorChangeStart,
     onSelectedTextColorPreview,
     onSelectedTextColorCommit,
-    onThumbnailExporterChange,
     onShareProject,
     showHotkeyHints,
 }: EditorLayoutProps) {
@@ -238,9 +237,6 @@ export function EditorLayout({
                             selectedObjectIds={selectedObjectIds}
                             onObjectSelect={onObjectSelect}
                             onOptionChange={onOptionChange}
-                            onThumbnailExporterChange={
-                                onThumbnailExporterChange
-                            }
                             showHotkeyHints={showHotkeyHints}
                         />
                     </div>

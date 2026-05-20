@@ -16,7 +16,6 @@ import {
     placeShapeOnCanvas,
 } from '../panels/shapes-panel/canvasShape';
 import { useEditorCanvasZoom } from './zoom/useEditorCanvasZoom';
-import { exportCanvasThumbnail } from './exportCanvasThumbnail';
 import './EditorCanvas.css';
 
 type EditorCanvasProps = {
@@ -37,9 +36,7 @@ type EditorCanvasProps = {
     selectedObjectIds: string[];
     onObjectSelect: (objectIds: string[]) => void;
     onOptionChange: (option: EditorOption) => void;
-    onThumbnailExporterChange?: (
-        exporter: (() => string | null) | null,
-    ) => void;
+
     showHotkeyHints: boolean;
 };
 
@@ -58,7 +55,6 @@ export function EditorCanvas({
     selectedObjectIds,
     onObjectSelect,
     onOptionChange,
-    onThumbnailExporterChange,
     showHotkeyHints,
 }: EditorCanvasProps) {
     const canvasAreaRef = useRef<HTMLElement | null>(null);
@@ -102,23 +98,6 @@ export function EditorCanvas({
             getLatestScene: () => latestSceneRef.current,
             onSceneCommit,
         });
-
-    useEffect(() => {
-        if (!onThumbnailExporterChange) {
-            return;
-        }
-
-        onThumbnailExporterChange(() =>
-            exportCanvasThumbnail({
-                canvas: canvasInstanceRef.current,
-                backgroundColor: scene.background.color,
-            }),
-        );
-
-        return () => {
-            onThumbnailExporterChange(null);
-        };
-    }, [canvasInstanceRef, onThumbnailExporterChange, scene.background.color]);
 
     useEffect(() => {
         latestSceneRef.current = scene;

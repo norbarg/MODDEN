@@ -241,10 +241,13 @@ export function EditorPage() {
         onTemplateSaved: (template) => {
             setLinkedTemplate(template);
 
-            setSaveProjectOptions({
+            const nextOptions: SaveProjectOptions = {
                 saveAsTemplate: Boolean(template),
                 isPublic: template?.isPublic ?? false,
-            });
+            };
+
+            lastSaveProjectOptionsRef.current = nextOptions;
+            setSaveProjectOptions(nextOptions);
         },
         onSceneSaved: markSceneAsSaved,
         onSaveModalClose: () => {
@@ -257,13 +260,34 @@ export function EditorPage() {
         },
     });
 
+    const getCurrentSaveOptions = (): SaveProjectOptions => {
+        if (lastSaveProjectOptionsRef.current) {
+            return lastSaveProjectOptionsRef.current;
+        }
+
+        return {
+            saveAsTemplate: Boolean(linkedTemplate),
+            isPublic: linkedTemplate?.isPublic ?? false,
+        };
+    };
+
+    const openSaveProjectModal = () => {
+        setSaveProjectOptions(getCurrentSaveOptions());
+        setIsSaveModalOpen(true);
+    };
+
     const handleSaveProjectWithOptions = async (
         options: SaveProjectOptions,
     ) => {
-        lastSaveProjectOptionsRef.current = options;
-        setSaveProjectOptions(options);
+        const normalizedOptions: SaveProjectOptions = {
+            saveAsTemplate: options.saveAsTemplate,
+            isPublic: options.saveAsTemplate ? options.isPublic : false,
+        };
 
-        await saveProject(options);
+        lastSaveProjectOptionsRef.current = normalizedOptions;
+        setSaveProjectOptions(normalizedOptions);
+
+        await saveProject(normalizedOptions);
     };
 
     const isDirty = isSceneDirty || isMetaDirty;
@@ -375,10 +399,16 @@ export function EditorPage() {
                     isRestoringDraftRef.current = false;
                 });
 
-                setSaveProjectOptions({
+                const loadedSaveOptions: SaveProjectOptions = {
                     saveAsTemplate: Boolean(existingTemplate),
                     isPublic: existingTemplate?.isPublic ?? false,
-                });
+                };
+
+                lastSaveProjectOptionsRef.current = existingTemplate
+                    ? loadedSaveOptions
+                    : null;
+
+                setSaveProjectOptions(loadedSaveOptions);
 
                 setIsMetaDirty(false);
             } catch (err) {
@@ -730,23 +760,13 @@ export function EditorPage() {
         addRecentColor(color);
     };
 
-    const handleQuickSaveProject = async () => {
-        if (isSaving) {
+    const handleQuickSave = async () => {
+        if (!lastSaveProjectOptionsRef.current) {
+            openSaveProjectModal();
             return;
         }
 
-        if (!isDirty) {
-            return;
-        }
-
-        const lastOptions = lastSaveProjectOptionsRef.current;
-
-        if (!lastOptions) {
-            setIsSaveModalOpen(true);
-            return;
-        }
-
-        await handleSaveProjectWithOptions(lastOptions);
+        await handleSaveProjectWithOptions(lastSaveProjectOptionsRef.current);
     };
 
     const handleBack = () => {
@@ -761,7 +781,7 @@ export function EditorPage() {
     const handleSaveAndLeave = () => {
         setIsUnsavedModalOpen(false);
         setShouldLeaveAfterSave(true);
-        setIsSaveModalOpen(true);
+        openSaveProjectModal();
     };
 
     const handleUpdateProjectMeta = async (values: CreateProjectFormValues) => {
@@ -822,11 +842,10 @@ export function EditorPage() {
         isSaving,
         isDirty,
         selectedObjectIds,
-        onQuickSave: handleQuickSaveProject,
+        onQuickSave: handleQuickSave,
         onDeleteSelected: handleSelectedObjectDelete,
         onHotkeyHintsVisibleChange: setIsHotkeyHintsVisible,
     });
-
     if (!accessToken && !refreshToken) {
         return <Navigate to={ROUTES.LOGIN} replace />;
     }
@@ -888,7 +907,7 @@ export function EditorPage() {
                 onCanvasBackgroundCommit={handleCanvasBackgroundCommit}
                 onZoomChange={setZoom}
                 onOpenProjectSettings={() => setIsEditModalOpen(true)}
-                onOpenSaveProject={() => setIsSaveModalOpen(true)}
+                onOpenSaveProject={openSaveProjectModal}
                 onBack={handleBack}
                 onSelectedObjectDuplicate={handleSelectedObjectDuplicate}
                 onSelectedObjectLockToggle={handleSelectedObjectLockToggle}
