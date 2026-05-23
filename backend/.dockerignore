@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.gitignore
+Dockerfile
+npm-debug.log
+pnpm-debug.log
+.env.local
+uploads
