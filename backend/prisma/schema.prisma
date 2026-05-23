@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TemplateCategory {
+  INFOGRAPHICS
+  POSTERS
+  BANNERS
+  BOOK_COVERS
+  LOGOS
+  MENUS
+  SOCIAL_MEDIA
+  WALLPAPERS
+  CUSTOM_SIZE
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  username        String       @unique
+  passwordHash    String?
+  googleId        String?      @unique
+  authProvider    AuthProvider @default(LOCAL)
+  isEmailVerified Boolean      @default(false)
+  avatarUrl       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  projects           Project[]
+  templates          Template[]
+  assets             Asset[]
+  refreshTokens      RefreshToken[]
+  verificationTokens EmailVerificationToken[]
+
+  @@map("users")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_tokens")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Project {
+  id           String           @id @default(uuid())
+  userId       String
+  templateId   String?
+  title        String
+  category     TemplateCategory
+  sceneJson    Json
+  canvasWidth  Int
+  canvasHeight Int
+  thumbnailUrl String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template? @relation("TemplateProjects", fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@map("projects")
+}
+
+model Template {
+  id              String           @id @default(uuid())
+  ownerUserId     String?
+  sourceProjectId String?
+  title           String
+  sceneJson       Json
+  thumbnailUrl    String?
+  category        TemplateCategory
+  canvasWidth     Int
+  canvasHeight    Int
+  isPublic        Boolean          @default(false)
+  isSystem        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  owner    User?     @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  projects Project[] @relation("TemplateProjects")
+
+  @@map("templates")
+}
+
+model Asset {
+  id        String   @id @default(uuid())
+  userId    String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}

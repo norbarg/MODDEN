@@ -1,0 +1,570 @@
+.editor-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex-shrink: 0;
+
+    height: 65px;
+    padding: 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #a7b7bc;
+    box-sizing: border-box;
+}
+
+.editor-header__left,
+.editor-header__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.editor-header__meta-button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #000;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.editor-header__meta-button:hover {
+    color: #ff3d00;
+}
+
+.editor-header__size {
+    min-width: max-content;
+}
+
+.editor-header__title {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-header__divider {
+    width: 4px;
+    border-radius: 50px;
+    height: 30px;
+    background: #dde3e5;
+}
+.unredo {
+    display: flex;
+    gap: 0px;
+}
+.editor-header__icon-button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    cursor: pointer;
+}
+
+.editor-header__icon-button img {
+    width: auto;
+    height: 20px;
+    display: block;
+    object-fit: contain;
+}
+
+.editor-header__save,
+.editor-header__share,
+.editor-header__download {
+    height: 30px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.editor-header__save {
+    background: #d9d9d9;
+    color: #708d96;
+}
+
+.editor-header__save--saved {
+    background: #dfe9e8;
+    color: #708d96;
+}
+
+.editor-header__save:disabled {
+    cursor: default;
+}
+
+.editor-header__save img {
+    width: 14px;
+    height: 14px;
+    display: block;
+    object-fit: contain;
+}
+
+.editor-header__share {
+    background: #272d43;
+    color: #ffffff;
+}
+
+.editor-header__download {
+    background: #ff3d00;
+    color: #ffffff;
+}
+
+.editor-header__share img,
+.editor-header__download img {
+    width: 16px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+}
+
+.editor-header__icon-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.editor-header__icon-button:disabled:hover {
+    background: transparent;
+}
+
+@media (max-width: 900px) {
+    .editor-header {
+        padding: 0 16px;
+    }
+
+    .editor-header__left {
+        min-width: 0;
+    }
+
+    .editor-header__title {
+        max-width: 130px;
+    }
+}
+
+.editor-header__download-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.editor-header__download:disabled {
+    cursor: wait;
+    opacity: 0.78;
+}
+
+.editor-header__download-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 80;
+
+    width: 230px;
+    padding: 6px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+
+    animation: editor-header-download-menu-show 0.18s ease forwards;
+    transform-origin: top right;
+}
+
+.editor-header__download-option {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 12px;
+
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+
+    color: #243244;
+    font-family: 'Graphik';
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.editor-header__download-option-text {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.editor-header__download-option strong {
+    color: #243244;
+    font-size: 13px;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.editor-header__download-option small {
+    color: rgba(36, 50, 68, 0.62);
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 500;
+}
+
+.editor-header__download-option:hover:not(:disabled) {
+    background: #f1f4f5;
+    color: #000000;
+    transform: translateX(2px);
+}
+
+.editor-header__download-option--large {
+    min-height: 56px;
+}
+.editor-header__download-option:hover:not(:disabled) {
+    background: #f1f4f5;
+    color: #000000;
+    transform: translateX(2px);
+}
+
+.editor-header__download-option:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+@keyframes editor-header-download-menu-show {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.editor-header__download-option-wrap {
+    position: relative;
+}
+
+.editor-header__download-option-arrow {
+    margin-left: auto;
+    color: #ff4b1f;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.editor-header__download-submenu::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -16px;
+
+    width: 16px;
+    height: 100%;
+}
+
+.editor-header__download-submenu {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 14px);
+    z-index: 90;
+
+    width: 230px;
+    padding: 8px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+
+    animation: editor-header-download-submenu-show 0.16s ease forwards;
+    transform-origin: top right;
+}
+
+@keyframes editor-header-download-submenu-show {
+    from {
+        opacity: 0;
+        transform: translateX(8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+.editor-header__download-menu,
+.editor-header__download-submenu {
+    border: 1px solid rgba(36, 50, 68, 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.editor-header__download-menu-head {
+    padding: 8px 10px 10px;
+    margin-bottom: 4px;
+
+    border-bottom: 1px solid rgba(36, 50, 68, 0.08);
+}
+
+.editor-header__download-menu-head strong {
+    display: block;
+
+    color: #243244;
+    font-size: 13px;
+    line-height: 1.15;
+    font-weight: 700;
+}
+
+.editor-header__download-menu-head small {
+    display: block;
+    margin-top: 4px;
+
+    color: rgba(36, 50, 68, 0.58);
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+.editor-header__download-menu-head--small {
+    padding-top: 6px;
+}
+
+.editor-header__download-menu-note {
+    margin-top: 4px;
+    padding: 9px 10px 6px;
+
+    border-top: 1px solid rgba(36, 50, 68, 0.08);
+
+    color: rgba(36, 50, 68, 0.52);
+    font-size: 10px;
+    line-height: 1.25;
+    font-weight: 500;
+}
+
+.editor-header__download-option {
+    position: relative;
+}
+
+.editor-header__download-option::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+
+    border-radius: 999px;
+    background: rgba(255, 75, 31, 0);
+
+    flex: 0 0 auto;
+
+    transition:
+        background-color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.editor-header__download-option:hover:not(:disabled)::before {
+    background: #ff4b1f;
+    transform: scale(1.15);
+}
+
+.editor-header__download-option:hover:not(:disabled) {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 75, 31, 0.08),
+        rgba(241, 244, 245, 0.85)
+    );
+}
+
+.editor-header__hotkey-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.editor-header__hotkey {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 100;
+
+    padding: 4px 7px;
+    border-radius: 7px;
+
+    background: #ff3d00;
+    color: #ffffff;
+
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 600;
+    white-space: nowrap;
+
+    box-shadow: 0 8px 18px rgba(20, 20, 35, 0.2);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+@media (max-width: 760px) {
+    .editor-header {
+        height: 58px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    .editor-header__left,
+    .editor-header__right {
+        gap: 8px;
+    }
+
+    .editor-header__left {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .editor-header__right {
+        flex: 0 0 auto;
+    }
+
+    .editor-header__meta-button {
+        font-size: 12px;
+    }
+
+    .editor-header__size {
+        max-width: 76px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .editor-header__title {
+        max-width: 92px;
+    }
+
+    .editor-header__divider {
+        width: 2px;
+        height: 24px;
+    }
+
+    .editor-header__icon-button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .editor-header__icon-button img {
+        height: 17px;
+    }
+
+    .editor-header__save {
+        height: 28px;
+        padding: 0 10px;
+        font-size: 11px;
+    }
+
+    .editor-header__share,
+    .editor-header__download {
+        width: 32px;
+        height: 28px;
+        padding: 0;
+        justify-content: center;
+        gap: 0;
+        font-size: 0;
+    }
+
+    .editor-header__share img,
+    .editor-header__download img {
+        width: 15px;
+        height: 15px;
+    }
+
+    .editor-header__download-menu {
+        right: 0;
+        width: 220px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .editor-header__download-submenu {
+        top: calc(100% + 8px);
+        right: 0;
+        width: 220px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .editor-header__hotkey {
+        top: calc(100% + 6px);
+    }
+}
+
+@media (max-width: 520px) {
+    .editor-header__size {
+        display: none;
+    }
+
+    .editor-header__left .editor-header__divider {
+        display: none;
+    }
+
+    .editor-header__title {
+        max-width: 92px;
+    }
+
+    .unredo {
+        display: none;
+    }
+}
+
+@media (max-width: 390px) {
+    .editor-header {
+        padding: 0 8px;
+    }
+
+    .editor-header__title {
+        max-width: 72px;
+    }
+
+    .editor-header__save {
+        padding: 0 8px;
+    }
+}
+@media (max-width: 760px) {
+    .editor-header {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 8px;
+    }
+
+    .editor-header__left {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .editor-header__right {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+}
