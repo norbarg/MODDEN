@@ -1,0 +1,8 @@
+modden.duckdns.org {
+    encode gzip
+
+    reverse_proxy /api/* backend:3000
+    reverse_proxy /uploads/* backend:3000
+
+    reverse_proxy frontend:80
+}
