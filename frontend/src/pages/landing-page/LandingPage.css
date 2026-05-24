@@ -720,9 +720,9 @@
         grid-template-columns: 1fr;
     }
 
-    .landing-create__content {
-        justify-self: start;
-    }
+     .landing-create__content {
+    display: none !important;
+}
 
     .landing-footer__columns {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -741,6 +741,49 @@
     .landing-footer__socials {
         justify-content: flex-start;
     }
+
+    .landing-slider {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 12px;
+    align-items: center;
+}
+
+.landing-slider__viewport {
+    order: 0;
+    min-width: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+}
+
+.landing-slider__button {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+}
+
+.landing-slider__button img {
+    width: 14px;
+    height: 14px;
+}
+
+.landing-slider__button--prev,
+.landing-slider__button--next {
+    order: 0;
+    justify-self: center;
+    margin-top: 0;
+}
+
+.landing-slide__image {
+    width: 100%;
+    height: auto;
+    max-height: 360px;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 28px;
+    background: transparent;
+}
+
 }
 
 @media (max-width: 768px) {
@@ -852,15 +895,9 @@
         margin-top: 48px;
     }
 
-    .landing-create__content {
-        font-size: 46px;
-        right: 25px;
-    }
-
-    .landing-create__content img {
-        width: 34px;
-        height: 34px;
-    }
+.landing-create__content {
+    display: none !important;
+}
 
     .landing-footer {
         margin-top: 52px;
@@ -906,6 +943,49 @@
     .landing-bottom-brand__logo {
         width: min(100%, 680px);
     }
+
+    .landing-slider {
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    gap: 8px;
+    align-items: center;
+}
+
+.landing-slider__viewport {
+    order: 0;
+    min-width: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+}
+
+.landing-slider__button {
+    width: 34px;
+    height: 34px;
+    margin: 0;
+}
+
+.landing-slider__button img {
+    width: 13px;
+    height: 13px;
+}
+
+.landing-slider__button--prev,
+.landing-slider__button--next {
+    order: 0;
+    justify-self: center;
+    margin-top: 0;
+}
+
+.landing-slide__image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 24px;
+    background: transparent;
+}
+
 }
 
 @media (max-width: 520px) {
