@@ -1,6 +1,10 @@
 modden.duckdns.org {
     encode gzip
 
+    request_body {
+        max_size 25MB
+    }
+
     reverse_proxy /api/* backend:3000
     reverse_proxy /uploads/* backend:3000
 
